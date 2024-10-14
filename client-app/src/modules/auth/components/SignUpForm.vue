@@ -42,6 +42,6 @@ const onSubmit = handleSubmit((values) => {
       <div>{{ errors.password }}</div>
     </div>
 
-    <Button class="mt-3 w-full" variant="outline">Sign up</Button>
+    <Button type="submit" class="mt-3 w-full" variant="outline">Sign up</Button>
   </form>
 </template>
