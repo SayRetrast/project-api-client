@@ -11,5 +11,8 @@ export const signUpSchema = z.object({
   password: z
     .string({ required_error: 'Password is required' })
     .min(1, { message: 'Password is required' })
-    .min(8, { message: 'Password must be at least 8 characters long' }),
+    .min(8, { message: 'Password must be at least 8 characters long' })
+    .regex(/^\S*$/, {
+      message: 'Password cannot contain spaces',
+    }),
 });
