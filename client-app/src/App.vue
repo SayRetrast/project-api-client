@@ -1,9 +1,12 @@
-<script setup lang="ts">
-import BaseButton from './core/components/ui/button/BaseButton.vue';
-</script>
-
 <template>
-  <div class="text-3xl font-bold underline">
-    <BaseButton>Hello world</BaseButton>
-  </div>
+  <main>
+    <div>
+      <RouterLink to="/sign-in">To sign in page</RouterLink>
+      <RouterLink to="/sign-up">To sign up page</RouterLink>
+    </div>
+
+    <p>Current route path is: {{ $route.fullPath }}</p>
+
+    <RouterView />
+  </main>
 </template>
