@@ -1,3 +1,3 @@
-import { authRouter } from './plugins/routes';
+import { routes as authRoutes } from './plugins/routes';
 
-export { authRouter };
+export { authRoutes };
