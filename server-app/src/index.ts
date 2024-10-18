@@ -1,13 +1,12 @@
-import fastify from 'fastify';
+import { fastify, FastifyInstance } from 'fastify';
 import 'dotenv/config';
+import { authRouter } from './modules/auth';
 
-const server = fastify();
+const server: FastifyInstance = fastify();
 
 const port = Number(process.env.PORT);
 
-server.get('/ping', async () => {
-  return 'pong\n';
-});
+server.register(authRouter.routes, { prefix: '/api/auth' });
 
 server.listen({ port }, (err, address) => {
   if (err) {

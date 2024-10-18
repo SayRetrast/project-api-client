@@ -1,19 +1,29 @@
-interface IRestController {
-  signIn(): Promise<void>;
-  signUp(): Promise<void>;
-  signOut(): Promise<void>;
+import { FastifyReply, FastifyRequest } from 'fastify';
+import { ISignInDto } from '../models/dto/signIn.dto';
+import { ISignUpDto } from '../models/dto/signUp.dto';
+
+interface IAuthRestController {
+  signIn(request: FastifyRequest<{ Body: ISignInDto }>, reply: FastifyReply): Promise<void>;
+  signUp(request: FastifyRequest<{ Body: ISignUpDto }>, reply: FastifyReply): Promise<void>;
+  signOut(request: FastifyRequest, reply: FastifyReply): Promise<void>;
 }
 
-export class RestController implements IRestController {
-  async signIn(): Promise<void> {
-    throw new Error('Method not implemented.');
+class AuthRestController implements IAuthRestController {
+  async signIn(request: FastifyRequest<{ Body: ISignInDto }>, reply: FastifyReply): Promise<void> {
+    const { username, password } = request.body;
+
+    reply.send({ username, password, message: 'Sign in successful' });
   }
 
-  async signUp(): Promise<void> {
-    throw new Error('Method not implemented.');
+  async signUp(request: FastifyRequest<{ Body: ISignUpDto }>, reply: FastifyReply): Promise<void> {
+    const { username, password, passwordConfirm } = request.body;
+
+    reply.send({ username, password, passwordConfirm, message: 'Sign up successful' });
   }
 
-  async signOut(): Promise<void> {
-    throw new Error('Method not implemented.');
+  async signOut(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    reply.send({ message: 'Sign out successful' });
   }
 }
+
+export const authRestController = new AuthRestController();
