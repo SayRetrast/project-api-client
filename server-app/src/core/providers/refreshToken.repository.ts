@@ -7,7 +7,7 @@ type CreateTokenParams = {
   browser: string;
 };
 
-interface IRefreshTokenRepository {
+export interface IRefreshTokenRepository {
   createToken({ userId, refreshToken, device, browser }: CreateTokenParams): Promise<void>;
 }
 
