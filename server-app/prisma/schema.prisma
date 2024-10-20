@@ -12,7 +12,7 @@ model Users {
   username String @unique @map("username") @db.VarChar(255)
 
   passwords Passwords?
-  tokens    Tokens[]
+  tokens    RefreshTokens[]
 
   @@map("users")
 }
@@ -26,14 +26,14 @@ model Passwords {
   @@map("passwords")
 }
 
-model Tokens {
-  userId  String @map("user_id")
-  device  String @map("device")
-  browser String @map("browser")
-  token   String @unique @map("token")
+model RefreshTokens {
+  userId       String @map("user_id")
+  device       String @map("device")
+  browser      String @map("browser")
+  refreshToken String @unique @map("refresh_token")
 
   user Users @relation(fields: [userId], references: [userId])
 
   @@id([userId, device, browser])
-  @@map("tokens")
+  @@map("refresh_tokens")
 }
