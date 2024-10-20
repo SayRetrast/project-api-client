@@ -21,19 +21,18 @@ model Passwords {
   userId   String @id @map("user_id")
   password String @map("password")
 
-  user Users @relation(fields: [userId], references: [userId])
+  user Users @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
   @@map("passwords")
 }
 
 model RefreshTokens {
   userId       String @map("user_id")
-  device       String @map("device")
-  browser      String @map("browser")
   refreshToken String @unique @map("refresh_token")
+  userAgent    String @map("user_agent")
 
-  user Users @relation(fields: [userId], references: [userId])
+  user Users @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
-  @@id([userId, device, browser])
+  @@id([userId, userAgent])
   @@map("refresh_tokens")
 }

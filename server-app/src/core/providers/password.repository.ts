@@ -4,7 +4,7 @@ export interface IPasswordRepository {
   createPassword(userId: string, hashedPassword: string): Promise<void>;
 }
 
-export class PasswordRepository implements IPasswordRepository {
+class PasswordRepository implements IPasswordRepository {
   async createPassword(userId: string, hashedPassword: string): Promise<void> {
     await prisma.passwords.create({
       data: {
@@ -14,3 +14,5 @@ export class PasswordRepository implements IPasswordRepository {
     });
   }
 }
+
+export const passwordRepository = new PasswordRepository();

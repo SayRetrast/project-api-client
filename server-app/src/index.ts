@@ -1,13 +1,16 @@
-import { fastify, FastifyInstance } from 'fastify';
 import 'dotenv/config';
+import 'module-alias/register';
+import { fastify, FastifyInstance } from 'fastify';
 import { authRoutes } from './modules/auth';
 import { serializerCompiler, validatorCompiler } from 'fastify-type-provider-zod';
+import { fastifyCookie } from '@fastify/cookie';
 
 const server: FastifyInstance = fastify();
 
 server.setValidatorCompiler(validatorCompiler);
 server.setSerializerCompiler(serializerCompiler);
 
+server.register(fastifyCookie);
 server.register(authRoutes, { prefix: '/api/auth' });
 
 server.listen({ port: Number(process.env.PORT) }, (err, address) => {

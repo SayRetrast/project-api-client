@@ -1,12 +1,17 @@
-import { FastifyInstance, FastifyPluginOptions } from 'fastify';
+import { FastifyInstance, FastifyPluginOptions, FastifyReply, FastifyRequest } from 'fastify';
 import { signUpSchema } from '../models/schemas/signUp.schema';
 import { authRestController } from '../controllers/rest.controller';
 import { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { signInSchema } from '../models/schemas/signIn.schema';
+import { ISignUpDto } from '../models/dto/signUp.dto';
 
 export function routes(fastify: FastifyInstance, options: FastifyPluginOptions, done: (err?: Error) => void): void {
   fastify.withTypeProvider<ZodTypeProvider>().post('/sign-in', { schema: signInSchema }, authRestController.signIn);
-  fastify.withTypeProvider<ZodTypeProvider>().post('/sign-up', { schema: signUpSchema }, authRestController.signUp);
+  fastify
+    .withTypeProvider<ZodTypeProvider>()
+    .post('/sign-up', { schema: signUpSchema }, (request: FastifyRequest<{ Body: ISignUpDto }>, reply: FastifyReply) =>
+      authRestController.signUp(request, reply)
+    );
 
   fastify.delete('/sign-out', authRestController.signOut);
 

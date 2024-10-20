@@ -6,7 +6,7 @@ export interface IUserRepository {
   createUser(username: string): Promise<IUser>;
 }
 
-export class UserRepository implements IUserRepository {
+class UserRepository implements IUserRepository {
   async getUser(userId: string): Promise<IUser | null> {
     const user = await prisma.users.findUnique({
       where: {
@@ -27,3 +27,5 @@ export class UserRepository implements IUserRepository {
     return createdUser;
   }
 }
+
+export const userRepository = new UserRepository();
