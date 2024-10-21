@@ -5,7 +5,12 @@ import { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { signInSchema } from '../models/signIn.schema';
 
 export function routes(fastify: FastifyInstance, options: FastifyPluginOptions, done: (err?: Error) => void): void {
-  fastify.withTypeProvider<ZodTypeProvider>().post('/sign-in', { schema: signInSchema }, authRestController.signIn);
+  fastify
+    .withTypeProvider<ZodTypeProvider>()
+    .post('/sign-in', { schema: signInSchema }, (request: FastifyRequest<{ Body: SignUpDto }>, reply: FastifyReply) =>
+      authRestController.signIn(request, reply)
+    );
+
   fastify
     .withTypeProvider<ZodTypeProvider>()
     .post('/sign-up', { schema: signUpSchema }, (request: FastifyRequest<{ Body: SignUpDto }>, reply: FastifyReply) =>

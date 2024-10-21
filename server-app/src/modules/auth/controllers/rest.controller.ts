@@ -20,7 +20,12 @@ class AuthRestController implements IAuthRestController {
   async signIn(request: FastifyRequest<{ Body: SignInDto }>, reply: FastifyReply): Promise<void> {
     const { username, password } = request.body;
 
-    reply.send({ username, password, message: 'Sign in successful' });
+    const { accessToken, refreshToken } = await this.authService.signIn({ request, username, password });
+
+    this.setTokenCookie(accessToken, reply);
+    this.setTokenCookie(refreshToken, reply);
+
+    reply.code(200).send({ statusCode: 200, message: 'Sign in successful' });
   }
 
   async signUp(request: FastifyRequest<{ Body: SignUpDto }>, reply: FastifyReply): Promise<void> {

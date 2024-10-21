@@ -11,13 +11,19 @@ type SignUpParams = {
   password: string;
 };
 
+type SignInParams = {
+  request: FastifyRequest;
+  username: string;
+  password: string;
+};
+
 type TokensData = {
   accessToken: string;
   refreshToken: string;
 };
 
 export interface IAuthService {
-  signIn(): Promise<void>;
+  signIn({ request, username, password }: SignInParams): Promise<TokensData>;
   signUp({ request, username, password }: SignUpParams): Promise<TokensData>;
   signOut(): Promise<void>;
 }
@@ -29,8 +35,28 @@ class AuthService implements IAuthService {
     this.authRepository = authRepository;
   }
 
-  async signIn(): Promise<void> {
-    throw new Error('Method not implemented.');
+  async signIn({ request, username, password }: SignInParams): Promise<TokensData> {
+    const userIdAndPassword = await this.authRepository.getUserIdAndPassword({ username });
+    if (!userIdAndPassword) {
+      throw new Error('Invalid credentials');
+    }
+
+    const { userId, password: hashedPassword } = userIdAndPassword;
+
+    const isPasswordValid = await bcrypt.compare(password, hashedPassword);
+    if (!isPasswordValid) {
+      throw new Error('Invalid credentials');
+    }
+
+    const { accessToken, refreshToken } = this.generateTokens({ userId, username });
+
+    this.authRepository.signInUser({
+      userId,
+      refreshToken,
+      userAgent: request.headers['user-agent'] as string,
+    });
+
+    return { accessToken, refreshToken };
   }
 
   async signUp({ request, username, password }: SignUpParams): Promise<TokensData> {
@@ -38,7 +64,7 @@ class AuthService implements IAuthService {
     const hashedPassword = await bcrypt.hash(password, 10);
     const { accessToken, refreshToken } = this.generateTokens({ userId, username });
 
-    this.authRepository.signUpUser({
+    await this.authRepository.signUpUser({
       userId,
       username,
       hashedPassword,
@@ -65,6 +91,7 @@ class AuthService implements IAuthService {
         expiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN as string,
       }
     );
+
     const refreshToken = jwt.sign(
       {
         tokenType: 'refreshToken',
