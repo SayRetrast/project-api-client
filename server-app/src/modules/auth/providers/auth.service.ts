@@ -1,11 +1,9 @@
-import { IPasswordRepository, passwordRepository } from '@/core/providers/password.repository';
-import { IRefreshTokenRepository, refreshTokenRepository } from '@/core/providers/refreshToken.repository';
-import { IUserRepository, userRepository } from '@/core/providers/user.repository';
 import { FastifyRequest } from 'fastify';
 import bcrypt from 'bcrypt';
-import prisma from '@/core/utils/prisma';
 import jwt from 'jsonwebtoken';
 import { IUser } from '@/core/interfaces/user.interface';
+import { v4 } from 'uuid';
+import { IAuthRepository, authRepository } from './auth.repository';
 
 type SignUpParams = {
   request: FastifyRequest;
@@ -25,18 +23,10 @@ export interface IAuthService {
 }
 
 class AuthService implements IAuthService {
-  private readonly userRepository: IUserRepository;
-  private readonly refreshTokenRepository: IRefreshTokenRepository;
-  private readonly passwordRepository: IPasswordRepository;
+  private readonly authRepository: IAuthRepository;
 
-  constructor(
-    userRepository: IUserRepository,
-    refreshTokenRepository: IRefreshTokenRepository,
-    passwordRepository: IPasswordRepository
-  ) {
-    this.userRepository = userRepository;
-    this.refreshTokenRepository = refreshTokenRepository;
-    this.passwordRepository = passwordRepository;
+  constructor(authRepository: IAuthRepository) {
+    this.authRepository = authRepository;
   }
 
   async signIn(): Promise<void> {
@@ -44,20 +34,16 @@ class AuthService implements IAuthService {
   }
 
   async signUp({ request, username, password }: SignUpParams): Promise<TokensData> {
+    const userId = v4();
     const hashedPassword = await bcrypt.hash(password, 10);
+    const { accessToken, refreshToken } = this.generateTokens({ userId, username });
 
-    const { accessToken, refreshToken } = await prisma.$transaction(async (): Promise<TokensData> => {
-      const createdUser = await this.userRepository.createUser(username);
-      this.passwordRepository.createPassword(createdUser.userId, hashedPassword);
-
-      const { accessToken, refreshToken } = this.generateTokens(createdUser);
-      this.refreshTokenRepository.createToken({
-        userId: createdUser.userId,
-        refreshToken,
-        userAgent: request.headers['user-agent'] as string,
-      });
-
-      return { accessToken, refreshToken };
+    this.authRepository.signUpUser({
+      userId,
+      username,
+      hashedPassword,
+      refreshToken,
+      userAgent: request.headers['user-agent'] as string,
     });
 
     return { accessToken, refreshToken };
@@ -94,4 +80,4 @@ class AuthService implements IAuthService {
   }
 }
 
-export const authService = new AuthService(userRepository, refreshTokenRepository, passwordRepository);
+export const authService = new AuthService(authRepository);

@@ -8,3 +8,5 @@ const bodyJsonSchema = z.object({
 export const signInSchema = {
   body: bodyJsonSchema,
 };
+
+export type SignInDto = z.infer<typeof bodyJsonSchema>;

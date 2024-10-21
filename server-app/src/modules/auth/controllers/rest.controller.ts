@@ -1,12 +1,12 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
-import { ISignInDto } from '../models/dto/signIn.dto';
-import { ISignUpDto } from '../models/dto/signUp.dto';
 import { authService, IAuthService } from '../providers/auth.service';
 import jwt, { JwtPayload } from 'jsonwebtoken';
+import { SignInDto } from '../models/signIn.schema';
+import { SignUpDto } from '../models/signUp.schema';
 
 interface IAuthRestController {
-  signIn(request: FastifyRequest<{ Body: ISignInDto }>, reply: FastifyReply): Promise<void>;
-  signUp(request: FastifyRequest<{ Body: ISignUpDto }>, reply: FastifyReply): Promise<void>;
+  signIn(request: FastifyRequest<{ Body: SignInDto }>, reply: FastifyReply): Promise<void>;
+  signUp(request: FastifyRequest<{ Body: SignUpDto }>, reply: FastifyReply): Promise<void>;
   signOut(request: FastifyRequest, reply: FastifyReply): Promise<void>;
 }
 
@@ -17,13 +17,13 @@ class AuthRestController implements IAuthRestController {
     this.authService = authService;
   }
 
-  async signIn(request: FastifyRequest<{ Body: ISignInDto }>, reply: FastifyReply): Promise<void> {
+  async signIn(request: FastifyRequest<{ Body: SignInDto }>, reply: FastifyReply): Promise<void> {
     const { username, password } = request.body;
 
     reply.send({ username, password, message: 'Sign in successful' });
   }
 
-  async signUp(request: FastifyRequest<{ Body: ISignUpDto }>, reply: FastifyReply): Promise<void> {
+  async signUp(request: FastifyRequest<{ Body: SignUpDto }>, reply: FastifyReply): Promise<void> {
     const { username, password } = request.body;
 
     const { accessToken, refreshToken } = await this.authService.signUp({ request, username, password });

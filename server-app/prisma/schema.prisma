@@ -11,8 +11,8 @@ model Users {
   userId   String @id @default(uuid()) @map("user_id")
   username String @unique @map("username") @db.VarChar(255)
 
-  passwords Passwords?
-  tokens    RefreshTokens[]
+  passwords     Passwords?
+  refreshTokens RefreshTokens[]
 
   @@map("users")
 }
