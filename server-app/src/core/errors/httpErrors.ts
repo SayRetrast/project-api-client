@@ -14,6 +14,14 @@ export class UnauthorizedError extends Error {
   }
 }
 
+export class NotFoundError extends Error {
+  statusCode = 404;
+
+  constructor(message: string) {
+    super(message);
+  }
+}
+
 export class ConflictError extends Error {
   statusCode = 409;
 

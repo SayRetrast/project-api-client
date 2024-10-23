@@ -18,6 +18,11 @@ type SignInParams = {
   password: string;
 };
 
+type SignOutParams = {
+  request: FastifyRequest;
+  userId: string;
+};
+
 type TokensData = {
   accessToken: string;
   refreshToken: string;
@@ -26,7 +31,7 @@ type TokensData = {
 export interface IAuthService {
   signIn({ request, username, password }: SignInParams): Promise<TokensData>;
   signUp({ request, username, password }: SignUpParams): Promise<TokensData>;
-  signOut(): Promise<void>;
+  signOut({ request, userId }: SignOutParams): Promise<void>;
 }
 
 class AuthService implements IAuthService {
@@ -94,8 +99,22 @@ class AuthService implements IAuthService {
     return { accessToken, refreshToken };
   }
 
-  async signOut(): Promise<void> {
-    throw new Error('Method not implemented.');
+  async signOut({ request, userId }: SignOutParams): Promise<void> {
+    const existingUser = await this.authRepository.findUserByUserId({ userId });
+    if (!existingUser) {
+      console.error('Such user does not exist');
+      throw new ErrorWithStatusCode(404, 'Such user does not exist');
+    }
+
+    await this.authRepository
+      .signOutUser({
+        userId,
+        userAgent: request.headers['user-agent'] as string,
+      })
+      .catch((error) => {
+        console.error(error);
+        throw new ErrorWithStatusCode(500, 'Failed to sign out user');
+      });
   }
 
   private generateTokens(user: IUser): { accessToken: string; refreshToken: string } {

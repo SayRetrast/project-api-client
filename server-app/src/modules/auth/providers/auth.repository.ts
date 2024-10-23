@@ -1,3 +1,4 @@
+import { IUser } from '../../../core/interfaces/user.interface';
 import prisma from '../../../core/utils/prisma';
 
 type SignUpUserParams = {
@@ -15,12 +16,28 @@ type SignInUserParams = {
 };
 
 export interface IAuthRepository {
+  findUserByUserId({ userId }: { userId: string }): Promise<IUser | null>;
   getUserIdAndPassword({ username }: { username: string }): Promise<{ userId: string; password: string } | null>;
   signInUser({ userId, refreshToken, userAgent }: SignInUserParams): Promise<void>;
   signUpUser({ username, userId, hashedPassword, refreshToken, userAgent }: SignUpUserParams): Promise<void>;
+  signOutUser({ userId, userAgent }: { userId: string; userAgent: string }): Promise<void>;
 }
 
 class AuthRepository implements IAuthRepository {
+  async findUserByUserId({ userId }: { userId: string }): Promise<IUser | null> {
+    const userData = await prisma.users.findUnique({
+      where: {
+        userId: userId,
+      },
+    });
+
+    if (!userData) {
+      return null;
+    }
+
+    return userData;
+  }
+
   async getUserIdAndPassword({ username }: { username: string }): Promise<{ userId: string; password: string } | null> {
     const userData = await prisma.users.findUnique({
       where: {
@@ -80,6 +97,17 @@ class AuthRepository implements IAuthRepository {
             refreshToken: refreshToken,
             userAgent: userAgent,
           },
+        },
+      },
+    });
+  }
+
+  async signOutUser({ userId, userAgent }: { userId: string; userAgent: string }): Promise<void> {
+    await prisma.refreshTokens.delete({
+      where: {
+        userId_userAgent: {
+          userId: userId,
+          userAgent: userAgent,
         },
       },
     });

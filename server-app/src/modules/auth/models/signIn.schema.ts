@@ -9,4 +9,4 @@ export const signInSchema = {
   body: bodyJsonSchema,
 };
 
-export type SignInDto = z.infer<typeof bodyJsonSchema>;
+export type SignInBody = z.infer<typeof bodyJsonSchema>;

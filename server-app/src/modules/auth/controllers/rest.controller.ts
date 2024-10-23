@@ -1,8 +1,6 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { authService, IAuthService } from '../providers/auth.service';
 import jwt, { JwtPayload } from 'jsonwebtoken';
-import { SignInDto } from '../models/signIn.schema';
-import { SignUpDto } from '../models/signUp.schema';
 import {
   BadRequestError,
   ConflictError,
@@ -10,11 +8,14 @@ import {
   UnauthorizedError,
 } from '../../../core/errors/httpErrors';
 import { ErrorWithStatusCode } from '../../../core/errors/errorWithStatusCode';
+import { SignInBody } from '../models/signIn.schema';
+import { SignUpBody } from '../models/signUp.schema';
+import { SignOutParams } from '../models/signOut.schema';
 
 interface IAuthRestController {
-  signIn(request: FastifyRequest<{ Body: SignInDto }>, reply: FastifyReply): Promise<void>;
-  signUp(request: FastifyRequest<{ Body: SignUpDto }>, reply: FastifyReply): Promise<void>;
-  signOut(request: FastifyRequest, reply: FastifyReply): Promise<void>;
+  signIn(request: FastifyRequest<{ Body: SignInBody }>, reply: FastifyReply): Promise<void>;
+  signUp(request: FastifyRequest<{ Body: SignUpBody }>, reply: FastifyReply): Promise<void>;
+  signOut(request: FastifyRequest<{ Params: SignOutParams }>, reply: FastifyReply): Promise<void>;
 }
 
 class AuthRestController implements IAuthRestController {
@@ -24,7 +25,7 @@ class AuthRestController implements IAuthRestController {
     this.authService = authService;
   }
 
-  async signIn(request: FastifyRequest<{ Body: SignInDto }>, reply: FastifyReply): Promise<void> {
+  async signIn(request: FastifyRequest<{ Body: SignInBody }>, reply: FastifyReply): Promise<void> {
     const { username, password } = request.body;
 
     const { accessToken, refreshToken } = await this.authService
@@ -43,7 +44,7 @@ class AuthRestController implements IAuthRestController {
     reply.code(200).send({ statusCode: 200, message: 'Sign in successful' });
   }
 
-  async signUp(request: FastifyRequest<{ Body: SignUpDto }>, reply: FastifyReply): Promise<void> {
+  async signUp(request: FastifyRequest<{ Body: SignUpBody }>, reply: FastifyReply): Promise<void> {
     const { username, password, passwordConfirm } = request.body;
     if (password !== passwordConfirm) {
       throw new BadRequestError('Entered passwords do not match');
@@ -65,8 +66,20 @@ class AuthRestController implements IAuthRestController {
     reply.code(201).send({ statusCode: 201, message: 'Sign up successful' });
   }
 
-  async signOut(request: FastifyRequest, reply: FastifyReply): Promise<void> {
-    reply.send({ message: 'Sign out successful' });
+  async signOut(request: FastifyRequest<{ Params: SignOutParams }>, reply: FastifyReply): Promise<void> {
+    const { userId } = request.params;
+
+    this.deleteTokensCookie(reply);
+
+    await this.authService.signOut({ request, userId }).catch((error: ErrorWithStatusCode) => {
+      if (error.statusCode === 404) {
+        throw new UnauthorizedError(error.message);
+      }
+
+      throw new InternalServerError(error.message);
+    });
+
+    reply.code(204).send({ statusCode: 204, message: 'Sign out successful' });
   }
 
   private setTokenCookie(token: string, reply: FastifyReply): void {
@@ -86,6 +99,16 @@ class AuthRestController implements IAuthRestController {
     } catch (error) {
       console.error(error);
       throw new InternalServerError('Failed to set token cookie');
+    }
+  }
+
+  private deleteTokensCookie(reply: FastifyReply): void {
+    try {
+      reply.clearCookie('accessToken');
+      reply.clearCookie('refreshToken');
+    } catch (error) {
+      console.error(error);
+      throw new InternalServerError('Failed to delete tokens cookie');
     }
   }
 }
