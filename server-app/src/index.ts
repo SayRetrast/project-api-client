@@ -1,5 +1,4 @@
 import 'dotenv/config';
-import 'module-alias/register';
 import { fastify, FastifyInstance } from 'fastify';
 import { authRoutes } from './modules/auth';
 import { serializerCompiler, validatorCompiler } from 'fastify-type-provider-zod';

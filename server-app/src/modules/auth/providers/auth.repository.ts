@@ -1,4 +1,4 @@
-import prisma from '@/core/utils/prisma';
+import prisma from '../../../core/utils/prisma';
 
 type SignUpUserParams = {
   username: string;

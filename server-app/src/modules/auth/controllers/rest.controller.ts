@@ -3,6 +3,7 @@ import { authService, IAuthService } from '../providers/auth.service';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import { SignInDto } from '../models/signIn.schema';
 import { SignUpDto } from '../models/signUp.schema';
+import { BadRequestError, InternalServerError } from '../../../core/errors/httpErrors';
 
 interface IAuthRestController {
   signIn(request: FastifyRequest<{ Body: SignInDto }>, reply: FastifyReply): Promise<void>;
@@ -29,9 +30,14 @@ class AuthRestController implements IAuthRestController {
   }
 
   async signUp(request: FastifyRequest<{ Body: SignUpDto }>, reply: FastifyReply): Promise<void> {
-    const { username, password } = request.body;
+    const { username, password, passwordConfirm } = request.body;
+    if (password !== passwordConfirm) {
+      throw new BadRequestError('Entered passwords do not match');
+    }
 
-    const { accessToken, refreshToken } = await this.authService.signUp({ request, username, password });
+    const { accessToken, refreshToken } = await this.authService.signUp({ request, username, password }).catch(() => {
+      throw new InternalServerError('Failed to sign up user');
+    });
 
     this.setTokenCookie(accessToken, reply);
     this.setTokenCookie(refreshToken, reply);
@@ -43,19 +49,24 @@ class AuthRestController implements IAuthRestController {
     reply.send({ message: 'Sign out successful' });
   }
 
-  private setTokenCookie(token: string, reply: FastifyReply) {
-    const decodedJwt = jwt.decode(token) as JwtPayload;
-    const tokenExpiry = decodedJwt.exp as number;
-    const tokenType = decodedJwt.tokenType as string;
+  private setTokenCookie(token: string, reply: FastifyReply): void {
+    try {
+      const decodedJwt = jwt.decode(token) as JwtPayload;
+      const tokenExpiry = decodedJwt.exp as number;
+      const tokenType = decodedJwt.tokenType as string;
 
-    reply.setCookie(tokenType, token, {
-      path: '/',
-      httpOnly: true,
-      sameSite: 'strict',
-      secure: process.env.NODE_ENV === 'production' ? true : false,
-      domain: 'localhost',
-      expires: new Date(tokenExpiry * 1000),
-    });
+      reply.setCookie(tokenType, token, {
+        path: '/',
+        httpOnly: true,
+        sameSite: 'strict',
+        secure: process.env.NODE_ENV === 'production' ? true : false,
+        domain: 'localhost',
+        expires: new Date(tokenExpiry * 1000),
+      });
+    } catch (error) {
+      console.error(error);
+      throw new InternalServerError('Failed to set token cookie');
+    }
   }
 }
 
