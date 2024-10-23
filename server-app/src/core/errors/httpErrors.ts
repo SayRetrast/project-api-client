@@ -6,14 +6,6 @@ export class BadRequestError extends Error {
   }
 }
 
-export class InternalServerError extends Error {
-  statusCode = 500;
-
-  constructor(message: string) {
-    super(message);
-  }
-}
-
 export class UnauthorizedError extends Error {
   statusCode = 401;
 
@@ -22,8 +14,16 @@ export class UnauthorizedError extends Error {
   }
 }
 
-export class Conflict extends Error {
+export class ConflictError extends Error {
   statusCode = 409;
+
+  constructor(message: string) {
+    super(message);
+  }
+}
+
+export class InternalServerError extends Error {
+  statusCode = 500;
 
   constructor(message: string) {
     super(message);

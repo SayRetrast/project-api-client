@@ -39,23 +39,30 @@ class AuthService implements IAuthService {
   async signIn({ request, username, password }: SignInParams): Promise<TokensData> {
     const userIdAndPassword = await this.authRepository.getUserIdAndPassword({ username });
     if (!userIdAndPassword) {
-      throw new Error('Invalid credentials');
+      console.error('User with this username does not exist');
+      throw new ErrorWithStatusCode(401, 'Wrong username or password');
     }
 
     const { userId, password: hashedPassword } = userIdAndPassword;
 
     const isPasswordValid = await bcrypt.compare(password, hashedPassword);
     if (!isPasswordValid) {
-      throw new Error('Invalid credentials');
+      console.error('Wrong password');
+      throw new ErrorWithStatusCode(401, 'Wrong username or password');
     }
 
     const { accessToken, refreshToken } = this.generateTokens({ userId, username });
 
-    this.authRepository.signInUser({
-      userId,
-      refreshToken,
-      userAgent: request.headers['user-agent'] as string,
-    });
+    await this.authRepository
+      .signInUser({
+        userId,
+        refreshToken,
+        userAgent: request.headers['user-agent'] as string,
+      })
+      .catch((error) => {
+        console.error(error);
+        throw new ErrorWithStatusCode(500, 'Failed to sign in user');
+      });
 
     return { accessToken, refreshToken };
   }
@@ -67,6 +74,7 @@ class AuthService implements IAuthService {
 
     const existingUser = await this.authRepository.getUserIdAndPassword({ username });
     if (existingUser) {
+      console.error('User with this username already exists');
       throw new ErrorWithStatusCode(409, 'User with this username already exists');
     }
 

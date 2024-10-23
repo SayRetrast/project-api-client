@@ -3,7 +3,12 @@ import { authService, IAuthService } from '../providers/auth.service';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import { SignInDto } from '../models/signIn.schema';
 import { SignUpDto } from '../models/signUp.schema';
-import { BadRequestError, Conflict, InternalServerError } from '../../../core/errors/httpErrors';
+import {
+  BadRequestError,
+  ConflictError,
+  InternalServerError,
+  UnauthorizedError,
+} from '../../../core/errors/httpErrors';
 import { ErrorWithStatusCode } from '../../../core/errors/errorWithStatusCode';
 
 interface IAuthRestController {
@@ -22,7 +27,15 @@ class AuthRestController implements IAuthRestController {
   async signIn(request: FastifyRequest<{ Body: SignInDto }>, reply: FastifyReply): Promise<void> {
     const { username, password } = request.body;
 
-    const { accessToken, refreshToken } = await this.authService.signIn({ request, username, password });
+    const { accessToken, refreshToken } = await this.authService
+      .signIn({ request, username, password })
+      .catch((error) => {
+        if (error.statusCode === 401) {
+          throw new UnauthorizedError(error.message);
+        }
+
+        throw new InternalServerError(error.message);
+      });
 
     this.setTokenCookie(accessToken, reply);
     this.setTokenCookie(refreshToken, reply);
@@ -40,7 +53,7 @@ class AuthRestController implements IAuthRestController {
       .signUp({ request, username, password })
       .catch((error: ErrorWithStatusCode) => {
         if (error.statusCode === 409) {
-          throw new Conflict(error.message);
+          throw new ConflictError(error.message);
         }
 
         throw new InternalServerError(error.message);
