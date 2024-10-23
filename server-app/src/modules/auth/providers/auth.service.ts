@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import { v4 } from 'uuid';
 import { IAuthRepository, authRepository } from './auth.repository';
 import { IUser } from '../../../core/interfaces/user.interface';
+import { ErrorWithStatusCode } from '../../../core/errors/errorWithStatusCode';
 
 type SignUpParams = {
   request: FastifyRequest;
@@ -64,6 +65,11 @@ class AuthService implements IAuthService {
     const hashedPassword = await bcrypt.hash(password, 10);
     const { accessToken, refreshToken } = this.generateTokens({ userId, username });
 
+    const existingUser = await this.authRepository.getUserIdAndPassword({ username });
+    if (existingUser) {
+      throw new ErrorWithStatusCode(409, 'User with this username already exists');
+    }
+
     await this.authRepository
       .signUpUser({
         userId,
@@ -74,7 +80,7 @@ class AuthService implements IAuthService {
       })
       .catch((error) => {
         console.error(error);
-        throw new Error('Failed to sign up user');
+        throw new ErrorWithStatusCode(500, 'Failed to sign up user');
       });
 
     return { accessToken, refreshToken };
@@ -112,7 +118,7 @@ class AuthService implements IAuthService {
       return { accessToken, refreshToken };
     } catch (error) {
       console.error(error);
-      throw new Error('Failed to generate tokens');
+      throw new ErrorWithStatusCode(500, 'Failed to generate tokens');
     }
   }
 }

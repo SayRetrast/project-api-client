@@ -3,7 +3,8 @@ import { authService, IAuthService } from '../providers/auth.service';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import { SignInDto } from '../models/signIn.schema';
 import { SignUpDto } from '../models/signUp.schema';
-import { BadRequestError, InternalServerError } from '../../../core/errors/httpErrors';
+import { BadRequestError, Conflict, InternalServerError } from '../../../core/errors/httpErrors';
+import { ErrorWithStatusCode } from '../../../core/errors/errorWithStatusCode';
 
 interface IAuthRestController {
   signIn(request: FastifyRequest<{ Body: SignInDto }>, reply: FastifyReply): Promise<void>;
@@ -35,9 +36,15 @@ class AuthRestController implements IAuthRestController {
       throw new BadRequestError('Entered passwords do not match');
     }
 
-    const { accessToken, refreshToken } = await this.authService.signUp({ request, username, password }).catch(() => {
-      throw new InternalServerError('Failed to sign up user');
-    });
+    const { accessToken, refreshToken } = await this.authService
+      .signUp({ request, username, password })
+      .catch((error: ErrorWithStatusCode) => {
+        if (error.statusCode === 409) {
+          throw new Conflict(error.message);
+        }
+
+        throw new InternalServerError(error.message);
+      });
 
     this.setTokenCookie(accessToken, reply);
     this.setTokenCookie(refreshToken, reply);
