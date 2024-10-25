@@ -5,6 +5,7 @@ import {
   BadRequestError,
   ConflictError,
   InternalServerError,
+  NotFoundError,
   UnauthorizedError,
 } from '../../../core/errors/httpErrors';
 import { ErrorWithStatusCode } from '../../../core/errors/errorWithStatusCode';
@@ -73,7 +74,7 @@ class AuthRestController implements IAuthRestController {
 
     await this.authService.signOut({ request, userId }).catch((error: ErrorWithStatusCode) => {
       if (error.statusCode === 404) {
-        throw new UnauthorizedError(error.message);
+        throw new NotFoundError(error.message);
       }
 
       throw new InternalServerError(error.message);
