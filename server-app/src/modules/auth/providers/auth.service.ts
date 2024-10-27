@@ -127,7 +127,7 @@ class AuthService implements IAuthService {
     return;
   }
 
-  async renewTokens({ request, refreshToken }: { request: FastifyRequest; refreshToken: string }): Promise<TokensData> {
+  async renewTokens({ refreshToken }: { refreshToken: string }): Promise<TokensData> {
     jwt.verify(refreshToken, process.env.JWT_SECRET_KEY as string, (error) => {
       if (error) {
         console.error(error);
@@ -142,10 +142,6 @@ class AuthService implements IAuthService {
     }
 
     const { userId, userAgent } = existingSession;
-    if (userAgent !== request.headers['user-agent']) {
-      console.error('User agent does not match');
-      throw new ErrorWithStatusCode(401, 'User agent does not match');
-    }
 
     const userData = await this.authRepository.findUserById({ userId });
     if (!userData) {
