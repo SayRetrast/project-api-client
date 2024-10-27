@@ -1,6 +1,6 @@
 import z from 'zod';
 
-const bodyJsonSchema = z
+const bodySchema = z
   .object({
     username: z
       .string({ required_error: 'Username is required' })
@@ -25,8 +25,22 @@ const bodyJsonSchema = z
     path: ['passwordConfirm'],
   });
 
-export const signUpSchema = {
-  body: bodyJsonSchema,
+const responseSchema = {
+  201: z.object({
+    statusCode: z.literal(201),
+    accessToken: z.string(),
+  }),
+  '4xx': z.object({
+    statusCode: z.number(),
+    error: z.string(),
+    message: z.string(),
+  }),
 };
 
-export type SignUpBody = z.infer<typeof bodyJsonSchema>;
+export const signUpSchema = {
+  body: bodySchema,
+  response: responseSchema,
+};
+
+export type SignUpBody = z.infer<typeof bodySchema>;
+export type SignUpResponse = z.infer<(typeof responseSchema)[201]>;

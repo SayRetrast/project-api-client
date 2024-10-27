@@ -9,8 +9,9 @@ import {
   UnauthorizedError,
 } from '../../../core/errors/httpErrors';
 import { ErrorWithStatusCode } from '../../../core/errors/errorWithStatusCode';
-import { SignInBody } from '../models/signIn.schema';
-import { SignUpBody } from '../models/signUp.schema';
+import { SignInBody, SignInResponse } from '../models/signIn.model';
+import { SignUpBody, SignUpResponse } from '../models/signUp.model';
+import { RenewTokensResponse } from '../models/renewTokens.model';
 
 interface IAuthRestController {
   signIn(request: FastifyRequest<{ Body: SignInBody }>, reply: FastifyReply): Promise<void>;
@@ -26,7 +27,10 @@ class AuthRestController implements IAuthRestController {
     this.authService = authService;
   }
 
-  async signIn(request: FastifyRequest<{ Body: SignInBody }>, reply: FastifyReply): Promise<void> {
+  async signIn(
+    request: FastifyRequest<{ Body: SignInBody }>,
+    reply: FastifyReply<{ Reply: SignInResponse }>
+  ): Promise<void> {
     const { username, password } = request.body;
 
     const { accessToken, refreshToken } = await this.authService
@@ -44,7 +48,10 @@ class AuthRestController implements IAuthRestController {
     return reply.code(201).send({ statusCode: 201, accessToken });
   }
 
-  async signUp(request: FastifyRequest<{ Body: SignUpBody }>, reply: FastifyReply): Promise<void> {
+  async signUp(
+    request: FastifyRequest<{ Body: SignUpBody }>,
+    reply: FastifyReply<{ Reply: SignUpResponse }>
+  ): Promise<void> {
     const { username, password, passwordConfirm } = request.body;
     if (password !== passwordConfirm) {
       throw new BadRequestError('Entered passwords do not match');
@@ -78,10 +85,10 @@ class AuthRestController implements IAuthRestController {
       throw new InternalServerError(error.message);
     });
 
-    return reply.code(204);
+    reply.code(204);
   }
 
-  async renewTokens(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+  async renewTokens(request: FastifyRequest, reply: FastifyReply<{ Reply: RenewTokensResponse }>): Promise<void> {
     const refreshToken = this.getTokenCookie(request, 'refreshToken');
     if (!refreshToken) {
       throw new UnauthorizedError('Missing refresh token');
