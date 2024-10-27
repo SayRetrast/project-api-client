@@ -40,7 +40,7 @@ class AuthRestController implements IAuthRestController {
 
     this.setTokenCookie(refreshToken, reply);
 
-    reply.code(201).send({ statusCode: 201, accessToken });
+    return reply.code(201).send({ statusCode: 201, accessToken });
   }
 
   async signUp(request: FastifyRequest<{ Body: SignUpBody }>, reply: FastifyReply): Promise<void> {
@@ -61,7 +61,7 @@ class AuthRestController implements IAuthRestController {
 
     this.setTokenCookie(refreshToken, reply);
 
-    reply.code(201).send({ statusCode: 201, accessToken });
+    return reply.code(201).send({ statusCode: 201, accessToken });
   }
 
   async signOut(request: FastifyRequest, reply: FastifyReply): Promise<void> {
@@ -77,7 +77,7 @@ class AuthRestController implements IAuthRestController {
       throw new InternalServerError(error.message);
     });
 
-    reply.code(204);
+    return reply.code(204);
   }
 
   private setTokenCookie(token: string, reply: FastifyReply): void {
