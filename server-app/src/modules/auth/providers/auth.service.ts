@@ -23,6 +23,11 @@ type SignOutParams = {
   userId: string;
 };
 
+type RenewTokensParams = {
+  request: FastifyRequest;
+  refreshToken: string;
+};
+
 type TokensData = {
   accessToken: string;
   refreshToken: string;
@@ -32,6 +37,7 @@ export interface IAuthService {
   signIn({ request, username, password }: SignInParams): Promise<TokensData>;
   signUp({ request, username, password }: SignUpParams): Promise<TokensData>;
   signOut({ request, userId }: SignOutParams): Promise<void>;
+  renewTokens({ request, refreshToken }: RenewTokensParams): Promise<TokensData>;
 }
 
 class AuthService implements IAuthService {
@@ -102,7 +108,7 @@ class AuthService implements IAuthService {
   async signOut({ request, userId }: SignOutParams): Promise<void> {
     const userAgent = request.headers['user-agent'] as string;
 
-    const existingSession = await this.authRepository.findUserSession({ userId, userAgent });
+    const existingSession = await this.authRepository.findUserSessionByUserInfo({ userId, userAgent });
     if (!existingSession) {
       console.error('User session not found');
       throw new ErrorWithStatusCode(404, 'User session not found');
@@ -117,6 +123,53 @@ class AuthService implements IAuthService {
         console.error(error);
         throw new ErrorWithStatusCode(500, 'Failed to sign out user');
       });
+
+    return;
+  }
+
+  async renewTokens({ request, refreshToken }: { request: FastifyRequest; refreshToken: string }): Promise<TokensData> {
+    jwt.verify(refreshToken, process.env.JWT_SECRET_KEY as string, (error) => {
+      if (error) {
+        console.error(error);
+        throw new ErrorWithStatusCode(401, 'Invalid refresh token');
+      }
+    });
+
+    const existingSession = await this.authRepository.findUserSessionByRefreshToken({ refreshToken });
+    if (!existingSession) {
+      console.error('User session not found');
+      throw new ErrorWithStatusCode(404, 'User session not found');
+    }
+
+    const { userId, userAgent } = existingSession;
+    if (userAgent !== request.headers['user-agent']) {
+      console.error('User agent does not match');
+      throw new ErrorWithStatusCode(401, 'User agent does not match');
+    }
+
+    const userData = await this.authRepository.findUserById({ userId });
+    if (!userData) {
+      console.error('User not found');
+      throw new ErrorWithStatusCode(404, 'User not found');
+    }
+
+    const { accessToken, refreshToken: newRefreshToken } = this.generateTokens({
+      userId,
+      username: userData.username,
+    });
+
+    await this.authRepository
+      .updateRefreshToken({
+        userId,
+        userAgent,
+        refreshToken: newRefreshToken,
+      })
+      .catch((error) => {
+        console.error(error);
+        throw new ErrorWithStatusCode(500, 'Failed to renew tokens');
+      });
+
+    return { accessToken, refreshToken: newRefreshToken };
   }
 
   private generateTokens(user: IUser): { accessToken: string; refreshToken: string } {

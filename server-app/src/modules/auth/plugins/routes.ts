@@ -11,6 +11,12 @@ export function routes(fastify: FastifyInstance, options: FastifyPluginOptions, 
 
   fastify
     .withTypeProvider<ZodTypeProvider>()
+    .get('/renew-tokens', { preHandler: authMiddleware }, (request: FastifyRequest, reply: FastifyReply) =>
+      authRestController.renewTokens(request, reply)
+    );
+
+  fastify
+    .withTypeProvider<ZodTypeProvider>()
     .post('/sign-in', { schema: signInSchema }, (request: FastifyRequest<{ Body: SignInBody }>, reply: FastifyReply) =>
       authRestController.signIn(request, reply)
     );
