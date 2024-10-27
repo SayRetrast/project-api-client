@@ -1,4 +1,3 @@
-import { IUser } from '../../../core/interfaces/user.interface';
 import prisma from '../../../core/utils/prisma';
 
 type SignUpUserParams = {
@@ -16,7 +15,7 @@ type SignInUserParams = {
 };
 
 export interface IAuthRepository {
-  findUserByUserId({ userId }: { userId: string }): Promise<IUser | null>;
+  findUserSession({ userId, userAgent }: { userId: string; userAgent: string }): Promise<boolean>;
   getUserIdAndPassword({ username }: { username: string }): Promise<{ userId: string; password: string } | null>;
   signInUser({ userId, refreshToken, userAgent }: SignInUserParams): Promise<void>;
   signUpUser({ username, userId, hashedPassword, refreshToken, userAgent }: SignUpUserParams): Promise<void>;
@@ -24,18 +23,17 @@ export interface IAuthRepository {
 }
 
 class AuthRepository implements IAuthRepository {
-  async findUserByUserId({ userId }: { userId: string }): Promise<IUser | null> {
-    const userData = await prisma.users.findUnique({
+  async findUserSession({ userId, userAgent }: { userId: string; userAgent: string }): Promise<boolean> {
+    const userSession = await prisma.refreshTokens.findUnique({
       where: {
-        userId: userId,
+        userId_userAgent: {
+          userId,
+          userAgent,
+        },
       },
     });
 
-    if (!userData) {
-      return null;
-    }
-
-    return userData;
+    return !!userSession;
   }
 
   async getUserIdAndPassword({ username }: { username: string }): Promise<{ userId: string; password: string } | null> {

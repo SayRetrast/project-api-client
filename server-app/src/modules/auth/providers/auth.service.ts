@@ -100,16 +100,18 @@ class AuthService implements IAuthService {
   }
 
   async signOut({ request, userId }: SignOutParams): Promise<void> {
-    const existingUser = await this.authRepository.findUserByUserId({ userId });
-    if (!existingUser) {
-      console.error('Such user does not exist');
-      throw new ErrorWithStatusCode(404, 'Such user does not exist');
+    const userAgent = request.headers['user-agent'] as string;
+
+    const existingSession = await this.authRepository.findUserSession({ userId, userAgent });
+    if (!existingSession) {
+      console.error('User session not found');
+      throw new ErrorWithStatusCode(404, 'User session not found');
     }
 
     await this.authRepository
       .signOutUser({
         userId,
-        userAgent: request.headers['user-agent'] as string,
+        userAgent,
       })
       .catch((error) => {
         console.error(error);

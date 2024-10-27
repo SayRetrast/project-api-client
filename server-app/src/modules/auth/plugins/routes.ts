@@ -3,7 +3,6 @@ import { SignUpBody, signUpSchema } from '../models/signUp.schema';
 import { authRestController } from '../controllers/rest.controller';
 import { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { SignInBody, signInSchema } from '../models/signIn.schema';
-import { SignOutParams, signOutSchema } from '../models/signOut.schema';
 import { authDecorator } from './auth.decorator';
 import { authMiddleware } from '../hooks/authMiddleware.hook';
 
@@ -24,11 +23,8 @@ export function routes(fastify: FastifyInstance, options: FastifyPluginOptions, 
 
   fastify
     .withTypeProvider<ZodTypeProvider>()
-    .delete(
-      '/sign-out/:userId',
-      { preHandler: authMiddleware<{ Params: SignOutParams }>, schema: signOutSchema },
-      (request: FastifyRequest<{ Params: SignOutParams }>, reply: FastifyReply) =>
-        authRestController.signOut(request, reply)
+    .delete('/sign-out', { preHandler: authMiddleware }, (request: FastifyRequest, reply: FastifyReply) =>
+      authRestController.signOut(request, reply)
     );
 
   done();
