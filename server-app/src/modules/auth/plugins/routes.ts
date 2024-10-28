@@ -8,13 +8,14 @@ import { authMiddleware } from '../hooks/authMiddleware.hook';
 import { signOutSchema } from '../models/signOut.model';
 import { RenewTokensResponse } from '../models/renewTokens.model';
 import { CreateRegistrationLinkResponse, createRegistrationLinkSchema } from '../models/createRegistrationLink.model';
+import {
+  ValidateRegistrationLinkQuery,
+  ValidateRegistrationLinkResponse,
+  validateRegistrationLinkSchema,
+} from '../models/validateRegistrationLink.models';
 
 export function routes(fastify: FastifyInstance, options: FastifyPluginOptions, done: (err?: Error) => void): void {
   fastify.register(authDecorator);
-
-  fastify.withTypeProvider<ZodTypeProvider>().get<{
-    Reply: RenewTokensResponse;
-  }>('/renew-tokens', (request: FastifyRequest, reply: FastifyReply<{ Reply: RenewTokensResponse }>) => authRestController.renewTokens(request, reply));
 
   fastify.withTypeProvider<ZodTypeProvider>().post<{
     Body: SignInBody;
@@ -26,10 +27,6 @@ export function routes(fastify: FastifyInstance, options: FastifyPluginOptions, 
     Reply: SignUpResponse;
   }>('/sign-up', { schema: signUpSchema }, (request: FastifyRequest<{ Body: SignUpBody }>, reply: FastifyReply<{ Reply: SignUpResponse }>) => authRestController.signUp(request, reply));
 
-  fastify.withTypeProvider<ZodTypeProvider>().post<{
-    Reply: CreateRegistrationLinkResponse;
-  }>('/registration-link', { preHandler: authMiddleware, schema: createRegistrationLinkSchema }, (request: FastifyRequest, reply: FastifyReply<{ Reply: CreateRegistrationLinkResponse }>) => authRestController.createRegistrationLink(request, reply));
-
   fastify
     .withTypeProvider<ZodTypeProvider>()
     .delete(
@@ -37,6 +34,19 @@ export function routes(fastify: FastifyInstance, options: FastifyPluginOptions, 
       { preHandler: authMiddleware, schema: signOutSchema },
       (request: FastifyRequest, reply: FastifyReply) => authRestController.signOut(request, reply)
     );
+
+  fastify.withTypeProvider<ZodTypeProvider>().get<{
+    Reply: RenewTokensResponse;
+  }>('/renew-tokens', (request: FastifyRequest, reply: FastifyReply<{ Reply: RenewTokensResponse }>) => authRestController.renewTokens(request, reply));
+
+  fastify.withTypeProvider<ZodTypeProvider>().get<{
+    Querystring: ValidateRegistrationLinkQuery;
+    Reply: ValidateRegistrationLinkResponse;
+  }>('/registration-link', { schema: validateRegistrationLinkSchema }, (request: FastifyRequest<{ Querystring: ValidateRegistrationLinkQuery }>, reply: FastifyReply<{ Reply: ValidateRegistrationLinkResponse }>) => authRestController.validateRegistrationLink(request, reply));
+
+  fastify.withTypeProvider<ZodTypeProvider>().post<{
+    Reply: CreateRegistrationLinkResponse;
+  }>('/registration-link', { preHandler: authMiddleware, schema: createRegistrationLinkSchema }, (request: FastifyRequest, reply: FastifyReply<{ Reply: CreateRegistrationLinkResponse }>) => authRestController.createRegistrationLink(request, reply));
 
   done();
 }

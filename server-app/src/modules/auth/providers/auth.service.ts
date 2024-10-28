@@ -34,12 +34,21 @@ type TokensData = {
   refreshToken: string;
 };
 
+type CreateRegistrationLinkParams = {
+  userId: string;
+};
+
+type ValidateRegistrationLinkParams = {
+  registrationKey: string;
+};
+
 export interface IAuthService {
   signIn({ request, username, password }: SignInParams): Promise<TokensData>;
   signUp({ request, username, password }: SignUpParams): Promise<TokensData>;
   signOut({ request, userId }: SignOutParams): Promise<void>;
   renewTokens({ request, refreshToken }: RenewTokensParams): Promise<TokensData>;
-  createRegistrationLink({ userId }: { userId: string }): Promise<string>;
+  createRegistrationLink({ userId }: CreateRegistrationLinkParams): Promise<string>;
+  validateRegistrationLink({ registrationKey }: ValidateRegistrationLinkParams): Promise<void>;
 }
 
 class AuthService implements IAuthService {
@@ -170,7 +179,7 @@ class AuthService implements IAuthService {
     return { accessToken, refreshToken: newRefreshToken };
   }
 
-  async createRegistrationLink({ userId }: { userId: string }): Promise<string> {
+  async createRegistrationLink({ userId }: CreateRegistrationLinkParams): Promise<string> {
     const expirationTimeInMs = convertExpirationTimeToMs(process.env.REGISTRATION_LINK_EXPIRES_IN as string);
     if (!expirationTimeInMs) {
       console.error('Invalid expiration time format');
@@ -194,6 +203,21 @@ class AuthService implements IAuthService {
       });
 
     return process.env.CLIENT_BASE_URL + '/auth/registration?key=' + registrationKey;
+  }
+
+  async validateRegistrationLink({ registrationKey }: ValidateRegistrationLinkParams): Promise<void> {
+    const expirationDate = await this.authRepository.getRegistrationKeyExpirationDate({ registrationKey });
+    if (!expirationDate) {
+      console.error('Registration key not found');
+      throw new ErrorWithStatusCode(404, 'Wrong registration key');
+    }
+
+    if (expirationDate < new Date()) {
+      console.error('Registration key expired');
+      throw new ErrorWithStatusCode(401, 'Registration key expired');
+    }
+
+    return;
   }
 
   private generateTokens(user: IUser): { accessToken: string; refreshToken: string } {

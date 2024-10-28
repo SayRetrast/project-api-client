@@ -13,6 +13,10 @@ import { SignInBody, SignInResponse } from '../models/signIn.model';
 import { SignUpBody, SignUpResponse } from '../models/signUp.model';
 import { RenewTokensResponse } from '../models/renewTokens.model';
 import { CreateRegistrationLinkResponse } from '../models/createRegistrationLink.model';
+import {
+  ValidateRegistrationLinkQuery,
+  ValidateRegistrationLinkResponse,
+} from '../models/validateRegistrationLink.models';
 
 interface IAuthRestController {
   signIn(request: FastifyRequest<{ Body: SignInBody }>, reply: FastifyReply<{ Reply: SignInResponse }>): Promise<void>;
@@ -22,6 +26,10 @@ interface IAuthRestController {
   createRegistrationLink(
     request: FastifyRequest,
     reply: FastifyReply<{ Reply: CreateRegistrationLinkResponse }>
+  ): Promise<void>;
+  validateRegistrationLink(
+    request: FastifyRequest<{ Querystring: ValidateRegistrationLinkQuery }>,
+    reply: FastifyReply<{ Reply: ValidateRegistrationLinkResponse }>
   ): Promise<void>;
 }
 
@@ -131,6 +139,27 @@ class AuthRestController implements IAuthRestController {
       });
 
     return reply.code(201).send({ statusCode: 201, registrationLink });
+  }
+
+  async validateRegistrationLink(
+    request: FastifyRequest<{ Querystring: ValidateRegistrationLinkQuery }>,
+    reply: FastifyReply<{ Reply: ValidateRegistrationLinkResponse }>
+  ): Promise<void> {
+    const { key: registrationKey } = request.query;
+
+    await this.authService.validateRegistrationLink({ registrationKey }).catch((error: ErrorWithStatusCode) => {
+      if (error.statusCode === 404) {
+        throw new NotFoundError(error.message);
+      }
+
+      if (error.statusCode === 401) {
+        throw new UnauthorizedError(error.message);
+      }
+
+      throw new InternalServerError(error.message);
+    });
+
+    return reply.code(200).send({ statusCode: 200, message: 'Registration link is valid' });
   }
 
   private setTokenCookie(token: string, reply: FastifyReply): void {

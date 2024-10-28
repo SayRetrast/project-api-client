@@ -48,12 +48,17 @@ type createRegistrationKeyParams = {
   expirationDate: Date;
 };
 
+type GetRegistrationKeyExpirationDateParams = {
+  registrationKey: string;
+};
+
 export interface IAuthRepository {
   findUserSessionByUserInfo(params: FindUserSessionByUserInfoParams): Promise<{ refreshToken: string } | null>;
   findUserSessionByRefreshToken(
     params: FindUserSessionByRefreshTokenParams
   ): Promise<{ userId: string; refreshToken: string; userAgent: string } | null>;
   findUserById(params: FindUserByIdParams): Promise<IUser | null>;
+  getRegistrationKeyExpirationDate(params: GetRegistrationKeyExpirationDateParams): Promise<Date | null>;
   getUserIdAndPassword(params: GetUserIdAndPasswordParams): Promise<{ userId: string; password: string } | null>;
   updateRefreshToken(params: UpdateRefreshTokenParams): Promise<void>;
   createRegistrationKey(params: createRegistrationKeyParams): Promise<string>;
@@ -138,6 +143,22 @@ class AuthRepository implements IAuthRepository {
       userId: userData.userId,
       password: userData.password.password,
     };
+  }
+
+  async getRegistrationKeyExpirationDate({
+    registrationKey,
+  }: GetRegistrationKeyExpirationDateParams): Promise<Date | null> {
+    const registrationKeyData = await prisma.registrationKeys.findUnique({
+      where: {
+        registrationKey,
+      },
+    });
+
+    if (!registrationKeyData) {
+      return null;
+    }
+
+    return registrationKeyData.expirationDate;
   }
 
   async updateRefreshToken({ userId, userAgent, refreshToken }: UpdateRefreshTokenParams): Promise<void> {
