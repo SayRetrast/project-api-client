@@ -1,4 +1,3 @@
-import { FastifyRequest } from 'fastify';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { v4 } from 'uuid';
@@ -6,37 +5,14 @@ import { IAuthRepository, authRepository } from './auth.repository';
 import { IUser } from '../../../core/interfaces/user.interface';
 import { ErrorWithStatusCode } from '../../../core/errors/errorWithStatusCode';
 import { convertExpirationTimeToMs } from '../utils/convertExpirationToMs';
-
-type SignUpParams = {
-  request: FastifyRequest;
-  username: string;
-  password: string;
-};
-
-type SignInParams = {
-  request: FastifyRequest;
-  username: string;
-  password: string;
-};
-
-type SignOutParams = {
-  request: FastifyRequest;
-  userId: string;
-};
-
-type RenewTokensParams = {
-  request: FastifyRequest;
-  refreshToken: string;
-};
-
-type TokensData = {
-  accessToken: string;
-  refreshToken: string;
-};
-
-type CreateRegistrationLinkParams = {
-  userId: string;
-};
+import {
+  SignInParams,
+  TokensData,
+  SignUpParams,
+  SignOutParams,
+  RenewTokensParams,
+  CreateRegistrationLinkParams,
+} from '../types/auth.service.types';
 
 export interface IAuthService {
   signIn({ request, username, password }: SignInParams): Promise<TokensData>;

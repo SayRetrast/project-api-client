@@ -1,56 +1,17 @@
 import { IUser } from '../../../core/interfaces/user.interface';
 import prisma from '../../../core/utils/prisma';
-
-type SignUpUserParams = {
-  username: string;
-  userId: string;
-  hashedPassword: string;
-  refreshToken: string;
-  userAgent: string;
-};
-
-type SignInUserParams = {
-  userId: string;
-  refreshToken: string;
-  userAgent: string;
-};
-
-type SignOutUserParams = {
-  userId: string;
-  userAgent: string;
-};
-
-type FindUserSessionByUserInfoParams = {
-  userId: string;
-  userAgent: string;
-};
-
-type FindUserSessionByRefreshTokenParams = {
-  refreshToken: string;
-};
-
-type UpdateRefreshTokenParams = {
-  userId: string;
-  userAgent: string;
-  refreshToken: string;
-};
-
-type FindUserByIdParams = {
-  userId: string;
-};
-
-type GetUserIdAndPasswordParams = {
-  username: string;
-};
-
-type createRegistrationKeyParams = {
-  userId: string;
-  expirationDate: Date;
-};
-
-type GetRegistrationKeyExpirationDateParams = {
-  registrationKey: string;
-};
+import {
+  FindUserSessionByUserInfoParams,
+  FindUserSessionByRefreshTokenParams,
+  FindUserByIdParams,
+  GetRegistrationKeyExpirationDateParams,
+  GetUserIdAndPasswordParams,
+  UpdateRefreshTokenParams,
+  createRegistrationKeyParams,
+  SignInUserParams,
+  SignUpUserParams,
+  SignOutUserParams,
+} from '../types/auth.repository.types';
 
 export interface IAuthRepository {
   findUserSessionByUserInfo(params: FindUserSessionByUserInfoParams): Promise<{ refreshToken: string } | null>;
