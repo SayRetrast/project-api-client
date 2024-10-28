@@ -11,7 +11,6 @@ type SignUpParams = {
   request: FastifyRequest;
   username: string;
   password: string;
-  registrationKey: string;
 };
 
 type SignInParams = {
@@ -39,17 +38,12 @@ type CreateRegistrationLinkParams = {
   userId: string;
 };
 
-type ValidateRegistrationLinkParams = {
-  registrationKey: string;
-};
-
 export interface IAuthService {
   signIn({ request, username, password }: SignInParams): Promise<TokensData>;
-  signUp({ request, username, password, registrationKey }: SignUpParams): Promise<TokensData>;
+  signUp({ request, username, password }: SignUpParams): Promise<TokensData>;
   signOut({ request, userId }: SignOutParams): Promise<void>;
   renewTokens({ request, refreshToken }: RenewTokensParams): Promise<TokensData>;
   createRegistrationLink({ userId }: CreateRegistrationLinkParams): Promise<string>;
-  validateRegistrationLink({ registrationKey }: ValidateRegistrationLinkParams): Promise<void>;
 }
 
 class AuthService implements IAuthService {
@@ -90,9 +84,7 @@ class AuthService implements IAuthService {
     return { accessToken, refreshToken };
   }
 
-  async signUp({ request, username, password, registrationKey }: SignUpParams): Promise<TokensData> {
-    await this.validateRegistrationKey(registrationKey);
-
+  async signUp({ request, username, password }: SignUpParams): Promise<TokensData> {
     const userId = v4();
     const hashedPassword = await bcrypt.hash(password, 10);
     const { accessToken, refreshToken } = this.generateTokens({ userId, username });
@@ -206,27 +198,6 @@ class AuthService implements IAuthService {
       });
 
     return process.env.CLIENT_BASE_URL + '/auth/registration?key=' + registrationKey;
-  }
-
-  async validateRegistrationLink({ registrationKey }: ValidateRegistrationLinkParams): Promise<void> {
-    await this.validateRegistrationKey(registrationKey);
-
-    return;
-  }
-
-  private async validateRegistrationKey(registrationKey: string): Promise<void> {
-    const expirationDate = await this.authRepository.getRegistrationKeyExpirationDate({ registrationKey });
-    if (!expirationDate) {
-      console.error('Registration key not found');
-      throw new ErrorWithStatusCode(404, 'Wrong registration key');
-    }
-
-    if (expirationDate < new Date()) {
-      console.error('Registration key expired');
-      throw new ErrorWithStatusCode(401, 'Registration key expired');
-    }
-
-    return;
   }
 
   private generateTokens(user: IUser): { accessToken: string; refreshToken: string } {

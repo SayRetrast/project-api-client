@@ -13,6 +13,7 @@ import {
   ValidateRegistrationLinkResponse,
   validateRegistrationLinkSchema,
 } from '../models/validateRegistrationLink.models';
+import { validateRegistrationKey } from '../hooks/validateRegistrationKey.hook';
 
 export function routes(fastify: FastifyInstance, options: FastifyPluginOptions, done: (err?: Error) => void): void {
   fastify.register(authDecorator);
@@ -26,7 +27,7 @@ export function routes(fastify: FastifyInstance, options: FastifyPluginOptions, 
     Querystring: SignUpQuery;
     Body: SignUpBody;
     Reply: SignUpResponse;
-  }>('/sign-up', { schema: signUpSchema }, (request: FastifyRequest<{ Querystring: SignUpQuery; Body: SignUpBody }>, reply: FastifyReply<{ Reply: SignUpResponse }>) => authRestController.signUp(request, reply));
+  }>('/sign-up', { preHandler: validateRegistrationKey, schema: signUpSchema }, (request: FastifyRequest<{ Querystring: SignUpQuery; Body: SignUpBody }>, reply: FastifyReply<{ Reply: SignUpResponse }>) => authRestController.signUp(request, reply));
 
   fastify
     .withTypeProvider<ZodTypeProvider>()
@@ -43,7 +44,7 @@ export function routes(fastify: FastifyInstance, options: FastifyPluginOptions, 
   fastify.withTypeProvider<ZodTypeProvider>().get<{
     Querystring: ValidateRegistrationLinkQuery;
     Reply: ValidateRegistrationLinkResponse;
-  }>('/registration-link', { schema: validateRegistrationLinkSchema }, (request: FastifyRequest<{ Querystring: ValidateRegistrationLinkQuery }>, reply: FastifyReply<{ Reply: ValidateRegistrationLinkResponse }>) => authRestController.validateRegistrationLink(request, reply));
+  }>('/registration-link', { preHandler: validateRegistrationKey, schema: validateRegistrationLinkSchema }, (request: FastifyRequest<{ Querystring: ValidateRegistrationLinkQuery }>, reply: FastifyReply<{ Reply: ValidateRegistrationLinkResponse }>) => authRestController.validateRegistrationLink(request, reply));
 
   fastify.withTypeProvider<ZodTypeProvider>().post<{
     Reply: CreateRegistrationLinkResponse;

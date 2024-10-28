@@ -68,23 +68,14 @@ class AuthRestController implements IAuthRestController {
     request: FastifyRequest<{ Querystring: SignUpQuery; Body: SignUpBody }>,
     reply: FastifyReply<{ Reply: SignUpResponse }>
   ): Promise<void> {
-    const { key: registrationKey } = request.query;
     const { username, password, passwordConfirm } = request.body;
     if (password !== passwordConfirm) {
       throw new BadRequestError('Entered passwords do not match');
     }
 
     const { accessToken, refreshToken } = await this.authService
-      .signUp({ request, username, password, registrationKey })
+      .signUp({ request, username, password })
       .catch((error: ErrorWithStatusCode) => {
-        if (error.statusCode === 401) {
-          throw new UnauthorizedError(error.message);
-        }
-
-        if (error.statusCode === 404) {
-          throw new NotFoundError(error.message);
-        }
-
         if (error.statusCode === 409) {
           throw new ConflictError(error.message);
         }
@@ -157,20 +148,6 @@ class AuthRestController implements IAuthRestController {
     request: FastifyRequest<{ Querystring: ValidateRegistrationLinkQuery }>,
     reply: FastifyReply<{ Reply: ValidateRegistrationLinkResponse }>
   ): Promise<void> {
-    const { key: registrationKey } = request.query;
-
-    await this.authService.validateRegistrationLink({ registrationKey }).catch((error: ErrorWithStatusCode) => {
-      if (error.statusCode === 404) {
-        throw new NotFoundError(error.message);
-      }
-
-      if (error.statusCode === 401) {
-        throw new UnauthorizedError(error.message);
-      }
-
-      throw new InternalServerError(error.message);
-    });
-
     return reply.code(200).send({ statusCode: 200, message: 'Registration link is valid' });
   }
 
