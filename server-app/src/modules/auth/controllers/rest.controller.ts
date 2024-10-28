@@ -10,7 +10,7 @@ import {
 } from '../../../core/errors/httpErrors';
 import { ErrorWithStatusCode } from '../../../core/errors/errorWithStatusCode';
 import { SignInBody, SignInResponse } from '../models/signIn.model';
-import { SignUpBody, SignUpResponse } from '../models/signUp.model';
+import { SignUpBody, SignUpQuery, SignUpResponse } from '../models/signUp.model';
 import { RenewTokensResponse } from '../models/renewTokens.model';
 import { CreateRegistrationLinkResponse } from '../models/createRegistrationLink.model';
 import {
@@ -20,7 +20,10 @@ import {
 
 interface IAuthRestController {
   signIn(request: FastifyRequest<{ Body: SignInBody }>, reply: FastifyReply<{ Reply: SignInResponse }>): Promise<void>;
-  signUp(request: FastifyRequest<{ Body: SignUpBody }>, reply: FastifyReply<{ Reply: SignUpResponse }>): Promise<void>;
+  signUp(
+    request: FastifyRequest<{ Querystring: SignUpQuery; Body: SignUpBody }>,
+    reply: FastifyReply<{ Reply: SignUpResponse }>
+  ): Promise<void>;
   signOut(request: FastifyRequest, reply: FastifyReply): Promise<void>;
   renewTokens(request: FastifyRequest, reply: FastifyReply<{ Reply: RenewTokensResponse }>): Promise<void>;
   createRegistrationLink(
@@ -62,17 +65,26 @@ class AuthRestController implements IAuthRestController {
   }
 
   async signUp(
-    request: FastifyRequest<{ Body: SignUpBody }>,
+    request: FastifyRequest<{ Querystring: SignUpQuery; Body: SignUpBody }>,
     reply: FastifyReply<{ Reply: SignUpResponse }>
   ): Promise<void> {
+    const { key: registrationKey } = request.query;
     const { username, password, passwordConfirm } = request.body;
     if (password !== passwordConfirm) {
       throw new BadRequestError('Entered passwords do not match');
     }
 
     const { accessToken, refreshToken } = await this.authService
-      .signUp({ request, username, password })
+      .signUp({ request, username, password, registrationKey })
       .catch((error: ErrorWithStatusCode) => {
+        if (error.statusCode === 401) {
+          throw new UnauthorizedError(error.message);
+        }
+
+        if (error.statusCode === 404) {
+          throw new NotFoundError(error.message);
+        }
+
         if (error.statusCode === 409) {
           throw new ConflictError(error.message);
         }

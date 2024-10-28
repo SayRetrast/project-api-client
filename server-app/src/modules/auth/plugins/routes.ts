@@ -1,5 +1,5 @@
 import { FastifyInstance, FastifyPluginOptions, FastifyReply, FastifyRequest } from 'fastify';
-import { SignUpBody, SignUpResponse, signUpSchema } from '../models/signUp.model';
+import { SignUpBody, SignUpQuery, SignUpResponse, signUpSchema } from '../models/signUp.model';
 import { authRestController } from '../controllers/rest.controller';
 import { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { SignInBody, SignInResponse, signInSchema } from '../models/signIn.model';
@@ -23,9 +23,10 @@ export function routes(fastify: FastifyInstance, options: FastifyPluginOptions, 
   }>('/sign-in', { schema: signInSchema }, (request: FastifyRequest<{ Body: SignInBody }>, reply: FastifyReply<{ Reply: SignInResponse }>) => authRestController.signIn(request, reply));
 
   fastify.withTypeProvider<ZodTypeProvider>().post<{
+    Querystring: SignUpQuery;
     Body: SignUpBody;
     Reply: SignUpResponse;
-  }>('/sign-up', { schema: signUpSchema }, (request: FastifyRequest<{ Body: SignUpBody }>, reply: FastifyReply<{ Reply: SignUpResponse }>) => authRestController.signUp(request, reply));
+  }>('/sign-up', { schema: signUpSchema }, (request: FastifyRequest<{ Querystring: SignUpQuery; Body: SignUpBody }>, reply: FastifyReply<{ Reply: SignUpResponse }>) => authRestController.signUp(request, reply));
 
   fastify
     .withTypeProvider<ZodTypeProvider>()

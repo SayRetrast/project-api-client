@@ -1,5 +1,9 @@
 import z from 'zod';
 
+const querySchema = z.object({
+  key: z.string({ required_error: 'Registration key is required' }),
+});
+
 const bodySchema = z
   .object({
     username: z
@@ -43,9 +47,11 @@ const responseSchema = {
 };
 
 export const signUpSchema = {
+  querystring: querySchema,
   body: bodySchema,
   response: responseSchema,
 };
 
 export type SignUpBody = z.infer<typeof bodySchema>;
+export type SignUpQuery = z.infer<typeof querySchema>;
 export type SignUpResponse = z.infer<(typeof responseSchema)[201]>;

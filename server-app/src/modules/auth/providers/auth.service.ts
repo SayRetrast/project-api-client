@@ -11,6 +11,7 @@ type SignUpParams = {
   request: FastifyRequest;
   username: string;
   password: string;
+  registrationKey: string;
 };
 
 type SignInParams = {
@@ -44,7 +45,7 @@ type ValidateRegistrationLinkParams = {
 
 export interface IAuthService {
   signIn({ request, username, password }: SignInParams): Promise<TokensData>;
-  signUp({ request, username, password }: SignUpParams): Promise<TokensData>;
+  signUp({ request, username, password, registrationKey }: SignUpParams): Promise<TokensData>;
   signOut({ request, userId }: SignOutParams): Promise<void>;
   renewTokens({ request, refreshToken }: RenewTokensParams): Promise<TokensData>;
   createRegistrationLink({ userId }: CreateRegistrationLinkParams): Promise<string>;
@@ -89,7 +90,9 @@ class AuthService implements IAuthService {
     return { accessToken, refreshToken };
   }
 
-  async signUp({ request, username, password }: SignUpParams): Promise<TokensData> {
+  async signUp({ request, username, password, registrationKey }: SignUpParams): Promise<TokensData> {
+    await this.validateRegistrationKey(registrationKey);
+
     const userId = v4();
     const hashedPassword = await bcrypt.hash(password, 10);
     const { accessToken, refreshToken } = this.generateTokens({ userId, username });
@@ -206,6 +209,12 @@ class AuthService implements IAuthService {
   }
 
   async validateRegistrationLink({ registrationKey }: ValidateRegistrationLinkParams): Promise<void> {
+    await this.validateRegistrationKey(registrationKey);
+
+    return;
+  }
+
+  private async validateRegistrationKey(registrationKey: string): Promise<void> {
     const expirationDate = await this.authRepository.getRegistrationKeyExpirationDate({ registrationKey });
     if (!expirationDate) {
       console.error('Registration key not found');
