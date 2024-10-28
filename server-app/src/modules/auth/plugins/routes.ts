@@ -7,6 +7,7 @@ import { authDecorator } from './auth.decorator';
 import { authMiddleware } from '../hooks/authMiddleware.hook';
 import { signOutSchema } from '../models/signOut.model';
 import { RenewTokensResponse } from '../models/renewTokens.model';
+import { CreateRegistrationLinkResponse, createRegistrationLinkSchema } from '../models/createRegistrationLink.model';
 
 export function routes(fastify: FastifyInstance, options: FastifyPluginOptions, done: (err?: Error) => void): void {
   fastify.register(authDecorator);
@@ -24,6 +25,10 @@ export function routes(fastify: FastifyInstance, options: FastifyPluginOptions, 
     Body: SignUpBody;
     Reply: SignUpResponse;
   }>('/sign-up', { schema: signUpSchema }, (request: FastifyRequest<{ Body: SignUpBody }>, reply: FastifyReply<{ Reply: SignUpResponse }>) => authRestController.signUp(request, reply));
+
+  fastify.withTypeProvider<ZodTypeProvider>().post<{
+    Reply: CreateRegistrationLinkResponse;
+  }>('/registration-link', { preHandler: authMiddleware, schema: createRegistrationLinkSchema }, (request: FastifyRequest, reply: FastifyReply<{ Reply: CreateRegistrationLinkResponse }>) => authRestController.createRegistrationLink(request, reply));
 
   fastify
     .withTypeProvider<ZodTypeProvider>()

@@ -12,12 +12,17 @@ import { ErrorWithStatusCode } from '../../../core/errors/errorWithStatusCode';
 import { SignInBody, SignInResponse } from '../models/signIn.model';
 import { SignUpBody, SignUpResponse } from '../models/signUp.model';
 import { RenewTokensResponse } from '../models/renewTokens.model';
+import { CreateRegistrationLinkResponse } from '../models/createRegistrationLink.model';
 
 interface IAuthRestController {
-  signIn(request: FastifyRequest<{ Body: SignInBody }>, reply: FastifyReply): Promise<void>;
-  signUp(request: FastifyRequest<{ Body: SignUpBody }>, reply: FastifyReply): Promise<void>;
+  signIn(request: FastifyRequest<{ Body: SignInBody }>, reply: FastifyReply<{ Reply: SignInResponse }>): Promise<void>;
+  signUp(request: FastifyRequest<{ Body: SignUpBody }>, reply: FastifyReply<{ Reply: SignUpResponse }>): Promise<void>;
   signOut(request: FastifyRequest, reply: FastifyReply): Promise<void>;
-  renewTokens(request: FastifyRequest, reply: FastifyReply): Promise<void>;
+  renewTokens(request: FastifyRequest, reply: FastifyReply<{ Reply: RenewTokensResponse }>): Promise<void>;
+  createRegistrationLink(
+    request: FastifyRequest,
+    reply: FastifyReply<{ Reply: CreateRegistrationLinkResponse }>
+  ): Promise<void>;
 }
 
 class AuthRestController implements IAuthRestController {
@@ -111,6 +116,21 @@ class AuthRestController implements IAuthRestController {
     this.setTokenCookie(newRefreshToken, reply);
 
     return reply.code(200).send({ statusCode: 200, accessToken });
+  }
+
+  async createRegistrationLink(
+    request: FastifyRequest,
+    reply: FastifyReply<{ Reply: CreateRegistrationLinkResponse }>
+  ): Promise<void> {
+    const { userId } = request.user!;
+
+    const registrationLink = await this.authService
+      .createRegistrationLink({ userId })
+      .catch((error: ErrorWithStatusCode) => {
+        throw new InternalServerError(error.message);
+      });
+
+    return reply.code(201).send({ statusCode: 201, registrationLink });
   }
 
   private setTokenCookie(token: string, reply: FastifyReply): void {

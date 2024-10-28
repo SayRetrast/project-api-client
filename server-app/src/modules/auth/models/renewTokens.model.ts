@@ -10,6 +10,11 @@ const responseSchema = {
     error: z.string(),
     message: z.string(),
   }),
+  '5xx': z.object({
+    statusCode: z.number(),
+    error: z.string(),
+    message: z.string(),
+  }),
 };
 
 export const signOutSchema = {

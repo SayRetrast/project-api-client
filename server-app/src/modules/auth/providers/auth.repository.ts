@@ -43,20 +43,23 @@ type GetUserIdAndPasswordParams = {
   username: string;
 };
 
+type createRegistrationKeyParams = {
+  userId: string;
+  expirationDate: Date;
+};
+
 export interface IAuthRepository {
-  findUserSessionByUserInfo({
-    userId,
-    userAgent,
-  }: FindUserSessionByUserInfoParams): Promise<{ refreshToken: string } | null>;
-  findUserSessionByRefreshToken({
-    refreshToken,
-  }: FindUserSessionByRefreshTokenParams): Promise<{ userId: string; refreshToken: string; userAgent: string } | null>;
-  findUserById({ userId }: FindUserByIdParams): Promise<IUser | null>;
-  getUserIdAndPassword({ username }: GetUserIdAndPasswordParams): Promise<{ userId: string; password: string } | null>;
-  updateRefreshToken({ userId, userAgent, refreshToken }: UpdateRefreshTokenParams): Promise<void>;
-  signInUser({ userId, refreshToken, userAgent }: SignInUserParams): Promise<void>;
-  signUpUser({ username, userId, hashedPassword, refreshToken, userAgent }: SignUpUserParams): Promise<void>;
-  signOutUser({ userId, userAgent }: SignOutUserParams): Promise<void>;
+  findUserSessionByUserInfo(params: FindUserSessionByUserInfoParams): Promise<{ refreshToken: string } | null>;
+  findUserSessionByRefreshToken(
+    params: FindUserSessionByRefreshTokenParams
+  ): Promise<{ userId: string; refreshToken: string; userAgent: string } | null>;
+  findUserById(params: FindUserByIdParams): Promise<IUser | null>;
+  getUserIdAndPassword(params: GetUserIdAndPasswordParams): Promise<{ userId: string; password: string } | null>;
+  updateRefreshToken(params: UpdateRefreshTokenParams): Promise<void>;
+  createRegistrationKey(params: createRegistrationKeyParams): Promise<string>;
+  signInUser(params: SignInUserParams): Promise<void>;
+  signUpUser(params: SignUpUserParams): Promise<void>;
+  signOutUser(params: SignOutUserParams): Promise<void>;
 }
 
 class AuthRepository implements IAuthRepository {
@@ -149,6 +152,17 @@ class AuthRepository implements IAuthRepository {
         refreshToken,
       },
     });
+  }
+
+  async createRegistrationKey({ userId, expirationDate }: createRegistrationKeyParams): Promise<string> {
+    const createdRegistrationKeyData = await prisma.registrationKeys.create({
+      data: {
+        creatorId: userId,
+        expirationDate,
+      },
+    });
+
+    return createdRegistrationKeyData.registrationKey;
   }
 
   async signInUser({ userId, refreshToken, userAgent }: SignInUserParams): Promise<void> {

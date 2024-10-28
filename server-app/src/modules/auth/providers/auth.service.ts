@@ -5,6 +5,7 @@ import { v4 } from 'uuid';
 import { IAuthRepository, authRepository } from './auth.repository';
 import { IUser } from '../../../core/interfaces/user.interface';
 import { ErrorWithStatusCode } from '../../../core/errors/errorWithStatusCode';
+import { convertExpirationTimeToMs } from '../utils/convertExpirationToMs';
 
 type SignUpParams = {
   request: FastifyRequest;
@@ -38,6 +39,7 @@ export interface IAuthService {
   signUp({ request, username, password }: SignUpParams): Promise<TokensData>;
   signOut({ request, userId }: SignOutParams): Promise<void>;
   renewTokens({ request, refreshToken }: RenewTokensParams): Promise<TokensData>;
+  createRegistrationLink({ userId }: { userId: string }): Promise<string>;
 }
 
 class AuthService implements IAuthService {
@@ -166,6 +168,32 @@ class AuthService implements IAuthService {
       });
 
     return { accessToken, refreshToken: newRefreshToken };
+  }
+
+  async createRegistrationLink({ userId }: { userId: string }): Promise<string> {
+    const expirationTimeInMs = convertExpirationTimeToMs(process.env.REGISTRATION_LINK_EXPIRES_IN as string);
+    if (!expirationTimeInMs) {
+      console.error('Invalid expiration time format');
+      throw new ErrorWithStatusCode(500, 'Invalid expiration time format');
+    }
+
+    const expirationDate = new Date(Date.now() + expirationTimeInMs);
+    if (expirationDate < new Date()) {
+      console.error('Expiration date is in the past');
+      throw new ErrorWithStatusCode(500, 'Expiration date is in the past');
+    }
+
+    const registrationKey = await this.authRepository
+      .createRegistrationKey({
+        userId,
+        expirationDate,
+      })
+      .catch((error) => {
+        console.error(error);
+        throw new ErrorWithStatusCode(500, 'Failed to create registration key');
+      });
+
+    return process.env.CLIENT_BASE_URL + '/auth/registration?key=' + registrationKey;
   }
 
   private generateTokens(user: IUser): { accessToken: string; refreshToken: string } {
