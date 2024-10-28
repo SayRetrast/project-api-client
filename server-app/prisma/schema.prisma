@@ -8,31 +8,50 @@ datasource db {
 }
 
 model Users {
-  userId   String @id @default(uuid()) @map("user_id")
-  username String @unique @map("username") @db.VarChar(255)
+  userId    String    @id @default(uuid()) @map("user_id")
+  username  String    @unique @map("username") @db.VarChar(255)
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
 
-  passwords     Passwords?
-  refreshTokens RefreshTokens[]
+  password         Passwords?
+  sessions         Sessions[]
+  registrationKeys RegistrationKeys[]
 
   @@map("users")
 }
 
 model Passwords {
-  userId   String @id @map("user_id")
-  password String @map("password")
+  userId    String    @id @map("user_id")
+  password  String    @map("password")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
 
   user Users @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
   @@map("passwords")
 }
 
-model RefreshTokens {
-  userId       String @map("user_id")
-  refreshToken String @unique @map("refresh_token")
-  userAgent    String @map("user_agent")
+model Sessions {
+  userId       String    @map("user_id")
+  refreshToken String    @unique @map("refresh_token")
+  userAgent    String    @map("user_agent")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime? @updatedAt @map("updated_at")
 
   user Users @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
   @@id([userId, userAgent])
-  @@map("refresh_tokens")
+  @@map("sessions")
+}
+
+model RegistrationKeys {
+  registrationKey String    @id @default(uuid()) @map("registration_key")
+  creatorId       String    @map("creator_id")
+  expirationDate  DateTime  @map("expiration_date")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime? @updatedAt @map("updated_at")
+
+  user Users @relation(fields: [creatorId], references: [userId], onDelete: Cascade)
+
+  @@map("registration_keys")
 }

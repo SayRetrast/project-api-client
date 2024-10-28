@@ -64,7 +64,7 @@ class AuthRepository implements IAuthRepository {
     userId,
     userAgent,
   }: FindUserSessionByUserInfoParams): Promise<{ refreshToken: string } | null> {
-    const userSession = await prisma.refreshTokens.findUnique({
+    const userSession = await prisma.sessions.findUnique({
       where: {
         userId_userAgent: {
           userId,
@@ -85,7 +85,7 @@ class AuthRepository implements IAuthRepository {
   async findUserSessionByRefreshToken({
     refreshToken,
   }: FindUserSessionByRefreshTokenParams): Promise<{ userId: string; refreshToken: string; userAgent: string } | null> {
-    const userSession = await prisma.refreshTokens.findUnique({
+    const userSession = await prisma.sessions.findUnique({
       where: {
         refreshToken,
       },
@@ -119,7 +119,7 @@ class AuthRepository implements IAuthRepository {
       },
       select: {
         userId: true,
-        passwords: {
+        password: {
           select: {
             password: true,
           },
@@ -127,18 +127,18 @@ class AuthRepository implements IAuthRepository {
       },
     });
 
-    if (!userData || !userData.passwords) {
+    if (!userData || !userData.password) {
       return null;
     }
 
     return {
       userId: userData.userId,
-      password: userData.passwords.password,
+      password: userData.password.password,
     };
   }
 
   async updateRefreshToken({ userId, userAgent, refreshToken }: UpdateRefreshTokenParams): Promise<void> {
-    await prisma.refreshTokens.update({
+    await prisma.sessions.update({
       where: {
         userId_userAgent: {
           userId: userId,
@@ -152,7 +152,7 @@ class AuthRepository implements IAuthRepository {
   }
 
   async signInUser({ userId, refreshToken, userAgent }: SignInUserParams): Promise<void> {
-    await prisma.refreshTokens.upsert({
+    await prisma.sessions.upsert({
       where: {
         userId_userAgent: {
           userId: userId,
@@ -175,12 +175,12 @@ class AuthRepository implements IAuthRepository {
       data: {
         userId: userId,
         username: username,
-        passwords: {
+        password: {
           create: {
             password: hashedPassword,
           },
         },
-        refreshTokens: {
+        sessions: {
           create: {
             refreshToken: refreshToken,
             userAgent: userAgent,
@@ -191,7 +191,7 @@ class AuthRepository implements IAuthRepository {
   }
 
   async signOutUser({ userId, userAgent }: SignOutUserParams): Promise<void> {
-    await prisma.refreshTokens.delete({
+    await prisma.sessions.delete({
       where: {
         userId_userAgent: {
           userId: userId,
