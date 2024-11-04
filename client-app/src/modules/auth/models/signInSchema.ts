@@ -8,3 +8,5 @@ export const signInSchema = z.object({
     .string({ required_error: 'Password is required' })
     .min(1, { message: 'Password is required' }),
 });
+
+export type SignInBody = z.infer<typeof signInSchema>;
