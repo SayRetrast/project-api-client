@@ -7,14 +7,12 @@ import { toTypedSchema } from '@vee-validate/zod';
 import { signInSchema } from '../models/signInSchema';
 import { useMutation } from '@tanstack/vue-query';
 import { signInAPI } from '../api/sign-in/sign-in';
-import { jwtDecode, type JwtPayload } from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
 import { useUserStore } from '../stores/userStore';
 import { useTokenStore } from '../stores/tokenStore';
 import { useRouter } from 'vue-router';
+import type { UserJwtPayload } from '@/core';
 
-interface CustomJwtPayLoad extends JwtPayload {
-  username: string;
-}
 const router = useRouter();
 
 const { setAccessToken } = useTokenStore();
@@ -37,7 +35,7 @@ const signInMutation = useMutation({
 const onSubmit = handleSubmit(async (data) => {
   try {
     const { accessToken } = await signInMutation.mutateAsync(data);
-    const userData = jwtDecode<CustomJwtPayLoad>(accessToken);
+    const userData = jwtDecode<UserJwtPayload>(accessToken);
 
     setAccessToken(accessToken);
     setUserInfo({ userId: userData.sub as string, username: userData.username as string });

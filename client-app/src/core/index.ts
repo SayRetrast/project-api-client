@@ -1,8 +1,6 @@
-import { router as coreRouter } from './router';
-import { authFetch } from './lib/authFetch';
+export { router as coreRouter } from './router';
 
-export { coreRouter, authFetch };
+export { authFetch } from './lib/authFetch';
 
-import type { ResponseError } from './types/responseError';
-
-export type { ResponseError };
+export type { ResponseError } from './types/responseError';
+export type { UserJwtPayload } from './interfaces/userJwtPayload';
