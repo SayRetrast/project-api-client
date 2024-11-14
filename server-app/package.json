@@ -15,6 +15,7 @@
   "description": "Local server app for API client",
   "dependencies": {
     "@fastify/cookie": "^11.0.1",
+    "@fastify/cors": "^10.0.1",
     "@prisma/client": "^5.20.0",
     "bcrypt": "^5.1.1",
     "dotenv": "^16.4.5",

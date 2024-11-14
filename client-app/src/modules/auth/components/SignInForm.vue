@@ -5,6 +5,20 @@ import { Label } from '@/core/components/ui/label';
 import { useForm } from 'vee-validate';
 import { toTypedSchema } from '@vee-validate/zod';
 import { signInSchema } from '../models/signInSchema';
+import { useMutation } from '@tanstack/vue-query';
+import { signInAPI } from '../api/sign-in/sign-in';
+import { jwtDecode, type JwtPayload } from 'jwt-decode';
+import { useUserStore } from '../stores/userStore';
+import { useTokenStore } from '../stores/tokenStore';
+import { useRouter } from 'vue-router';
+
+interface CustomJwtPayLoad extends JwtPayload {
+  username: string;
+}
+const router = useRouter();
+
+const { setAccessToken } = useTokenStore();
+const { setUserInfo } = useUserStore();
 
 const { defineField, errors, handleSubmit } = useForm({
   validationSchema: toTypedSchema(signInSchema),
@@ -13,8 +27,25 @@ const { defineField, errors, handleSubmit } = useForm({
 const [username, usernameAttrs] = defineField('username');
 const [password, passwordAttrs] = defineField('password');
 
-const onSubmit = handleSubmit((values) => {
-  console.log(values);
+const signInMutation = useMutation({
+  mutationFn: signInAPI,
+  onSuccess: () => {
+    console.log('User signed in');
+  },
+});
+
+const onSubmit = handleSubmit(async (data) => {
+  try {
+    const { accessToken } = await signInMutation.mutateAsync(data);
+    const userData = jwtDecode<CustomJwtPayLoad>(accessToken);
+
+    setAccessToken(accessToken);
+    setUserInfo({ userId: userData.sub as string, username: userData.username as string });
+
+    router.push({ name: 'main' });
+  } catch (error) {
+    console.log(error);
+  }
 });
 </script>
 
@@ -22,23 +53,13 @@ const onSubmit = handleSubmit((values) => {
   <form @submit="onSubmit">
     <div>
       <Label>Username</Label>
-      <Input
-        type="text"
-        v-model="username"
-        v-bind="usernameAttrs"
-        placeholder="Your username"
-      />
+      <Input type="text" v-model="username" v-bind="usernameAttrs" placeholder="Your username" />
       <div>{{ errors.username }}</div>
     </div>
 
     <div>
       <Label>Password</Label>
-      <Input
-        type="password"
-        v-model="password"
-        v-bind="passwordAttrs"
-        placeholder="Your password"
-      />
+      <Input type="password" v-model="password" v-bind="passwordAttrs" placeholder="Your password" />
       <div>{{ errors.password }}</div>
     </div>
 
