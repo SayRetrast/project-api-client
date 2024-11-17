@@ -1,7 +1,7 @@
 import z from 'zod';
 
 const querySchema = z.object({
-  key: z.string({ required_error: 'Registration key is required' }),
+  'registration-key': z.string({ required_error: 'Registration key is required' }),
 });
 
 const bodySchema = z

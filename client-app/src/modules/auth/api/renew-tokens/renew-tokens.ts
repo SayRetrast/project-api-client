@@ -2,7 +2,7 @@ import type { ResponseError } from '@/core';
 import type { RenewTokensResponse } from './response';
 
 export const renewTokensAPI = async () => {
-  const response = await fetch('/api/auth/authorize', {
+  const response = await fetch(import.meta.env.VITE_BACKEND_BASE_URL + '/api/auth/authorize', {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',

@@ -1,13 +1,14 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { InternalServerError, NotFoundError, UnauthorizedError } from '../../../core/errors/httpErrors';
 import { authRepository } from '../providers/auth.repository';
+import { ValidateRegistrationLinkQuery } from '../models/validateRegistrationLink.models';
 
 export async function validateRegistrationKey(
-  request: FastifyRequest<{ Querystring: { key: string } }>,
+  request: FastifyRequest<{ Querystring: ValidateRegistrationLinkQuery }>,
   reply: FastifyReply,
   done: (err?: Error) => void
 ) {
-  const { key: registrationKey } = request.query;
+  const registrationKey = request.query['registration-key'];
 
   const expirationDate = await authRepository.getRegistrationKeyExpirationDate({ registrationKey }).catch((error) => {
     console.error(error);
