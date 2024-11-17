@@ -8,6 +8,7 @@ export const signInAPI = async (body: SignInBody) => {
     headers: {
       'Content-Type': 'application/json',
     },
+    credentials: 'include',
     body: JSON.stringify(body),
   });
 

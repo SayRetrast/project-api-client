@@ -1,7 +1,9 @@
 import { createWebHistory, createRouter } from 'vue-router';
-import { authRoutes, useUserStore } from '@/modules/auth';
+import { authRoutes, renewTokensAPI, useTokenStore, useUserStore } from '@/modules/auth';
 import PageNotFoundView from './views/PageNotFoundView.vue';
 import TemporaryMainPageView from './views/TemporaryMainPageView.vue';
+import { jwtDecode } from 'jwt-decode';
+import type { UserJwtPayload } from './interfaces/userJwtPayload';
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -12,8 +14,27 @@ export const router = createRouter({
   ],
 });
 
-router.beforeEach((to) => {
+const authorizeUser = async (
+  setUserInfo: (userInfo: { userId: string; username: string }) => void,
+  setAccessToken: (accessToken: string) => void
+) => {
+  try {
+    const { accessToken } = await renewTokensAPI();
+    const userData = jwtDecode<UserJwtPayload>(accessToken);
+
+    setAccessToken(accessToken);
+    setUserInfo({ userId: userData.sub as string, username: userData.username as string });
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+router.beforeEach(async (to) => {
+  const { setAccessToken } = useTokenStore();
   const userStore = useUserStore();
+
+  await authorizeUser(userStore.setUserInfo, setAccessToken);
+
   const isAuthenticated = userStore.isAuthenticated;
 
   if (to.name !== 'sign-in' && to.name !== 'sign-up') {

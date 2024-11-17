@@ -10,7 +10,7 @@ const server: FastifyInstance = fastify();
 server.setValidatorCompiler(validatorCompiler);
 server.setSerializerCompiler(serializerCompiler);
 
-server.register(cors, { origin: process.env.FRONTEND_BASE_URL });
+server.register(cors, { origin: process.env.FRONTEND_BASE_URL, credentials: true });
 server.register(fastifyCookie);
 server.register(authRoutes, { prefix: '/api/auth' });
 

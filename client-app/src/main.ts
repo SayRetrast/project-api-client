@@ -8,8 +8,8 @@ import { VueQueryPlugin } from '@tanstack/vue-query';
 const pinia = createPinia();
 const app = createApp(App);
 
+app.use(coreRouter);
 app.use(pinia);
 app.use(VueQueryPlugin);
-app.use(coreRouter);
 
 app.mount('#app');

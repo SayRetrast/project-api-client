@@ -10,6 +10,7 @@ export const signUpAPI = async (body: SignUpBody, registrationKey: string) => {
       headers: {
         'Content-Type': 'application/json',
       },
+      credentials: 'include',
       body: JSON.stringify(body),
     }
   );
