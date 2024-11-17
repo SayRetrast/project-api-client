@@ -1,4 +1,4 @@
-export { router as CoreRouter } from './router';
+export { router as coreRouter } from './router';
 
 export * from './lib/authFetch';
 export * from './lib/types';

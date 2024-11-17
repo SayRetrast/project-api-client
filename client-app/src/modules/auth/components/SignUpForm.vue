@@ -17,6 +17,13 @@ import { validateRegistrationLinkAPI } from '../api/validate-registration-link/v
 const router = useRouter();
 const route = useRoute();
 
+const { setAccessToken } = useTokenStore();
+const userStore = useUserStore();
+
+if (userStore.isAuthenticated) {
+  router.push({ name: 'main' });
+}
+
 const registrationKey = route.query['registration-key'];
 
 const { isPending, isError, isSuccess } = useQuery({
@@ -24,9 +31,6 @@ const { isPending, isError, isSuccess } = useQuery({
   queryFn: () => validateRegistrationLinkAPI(registrationKey as string),
   retry: false,
 });
-
-const { setAccessToken } = useTokenStore();
-const { setUserInfo } = useUserStore();
 
 const { errors, defineField, handleSubmit } = useForm({
   validationSchema: toTypedSchema(signUpSchema),
@@ -50,7 +54,7 @@ const onSubmit = handleSubmit(async (data) => {
     const userData = jwtDecode<UserJwtPayload>(accessToken);
 
     setAccessToken(accessToken);
-    setUserInfo({ userId: userData.sub as string, username: userData.username as string });
+    userStore.setUserInfo({ userId: userData.sub as string, username: userData.username as string });
 
     router.push({ name: 'main' });
   } catch (error) {

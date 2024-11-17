@@ -16,7 +16,11 @@ import type { UserJwtPayload } from '@/core';
 const router = useRouter();
 
 const { setAccessToken } = useTokenStore();
-const { setUserInfo } = useUserStore();
+const userStore = useUserStore();
+
+if (userStore.isAuthenticated) {
+  router.push({ name: 'main' });
+}
 
 const { defineField, errors, handleSubmit } = useForm({
   validationSchema: toTypedSchema(signInSchema),
@@ -38,7 +42,7 @@ const onSubmit = handleSubmit(async (data) => {
     const userData = jwtDecode<UserJwtPayload>(accessToken);
 
     setAccessToken(accessToken);
-    setUserInfo({ userId: userData.sub as string, username: userData.username as string });
+    userStore.setUserInfo({ userId: userData.sub as string, username: userData.username as string });
 
     router.push({ name: 'main' });
   } catch (error) {

@@ -40,19 +40,21 @@ router.beforeEach(async (to) => {
   const { setAccessToken } = useTokenStore();
   const userStore = useUserStore();
 
+  let isAuthenticated = userStore.isAuthenticated;
+  if (isAuthenticated) {
+    if (to.name === 'sign-in' || to.name === 'sign-up') {
+      return { path: '/' };
+    }
+
+    return;
+  }
+
   await authorizeUser(userStore.setUserInfo, setAccessToken);
 
-  const isAuthenticated = userStore.isAuthenticated;
-
+  isAuthenticated = userStore.isAuthenticated;
   if (to.name !== 'sign-in' && to.name !== 'sign-up') {
     if (!isAuthenticated) {
       return { path: '/sign-in' };
-    }
-  }
-
-  if (to.name === 'sign-in' || to.name === 'sign-up') {
-    if (isAuthenticated) {
-      return { path: '/' };
     }
   }
 });
