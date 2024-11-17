@@ -6,6 +6,13 @@ import TemporaryMainPageView from './views/TemporaryMainPageView.vue';
 import CoreLayout from './layouts/CoreLayout.vue';
 import type { UserJwtPayload } from './lib/interfaces';
 
+const protectedRoutesHandler = () => {
+  const userStore = useUserStore();
+  if (!userStore.isAuthenticated) {
+    return { path: '/sign-in' };
+  }
+};
+
 export const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -13,11 +20,10 @@ export const router = createRouter({
     {
       path: '/',
       component: CoreLayout,
-      children: [
-        { path: '', name: 'main', component: TemporaryMainPageView },
-        { path: ':pathMatch(.*)*', name: 'not-found', component: PageNotFoundView },
-      ],
+      beforeEnter: protectedRoutesHandler,
+      children: [{ path: '', name: 'main', component: TemporaryMainPageView }],
     },
+    { path: '/:pathMatch(.*)*', name: 'not-found', component: PageNotFoundView },
   ],
 });
 
@@ -50,11 +56,5 @@ router.beforeEach(async (to) => {
   }
 
   await authorizeUser(userStore.setUserInfo, setAccessToken);
-
   isAuthenticated = userStore.isAuthenticated;
-  if (to.name !== 'sign-in' && to.name !== 'sign-up') {
-    if (!isAuthenticated) {
-      return { path: '/sign-in' };
-    }
-  }
 });
