@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import CoreHeader from '../components/widgets/CoreHeader.vue';
+import HeaderWidget from '../components/widgets/HeaderWidget.vue';
 </script>
 
 <template>
   <div>
-    <CoreHeader />
+    <HeaderWidget />
     <RouterView />
   </div>
 </template>
