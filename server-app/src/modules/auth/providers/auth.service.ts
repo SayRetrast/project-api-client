@@ -173,7 +173,7 @@ class AuthService implements IAuthService {
         throw new ErrorWithStatusCode(500, 'Failed to create registration key');
       });
 
-    return process.env.CLIENT_BASE_URL + '/auth/registration?key=' + registrationKey;
+    return process.env.FRONTEND_BASE_URL + '/sign-up?registration-key=' + registrationKey;
   }
 
   private generateTokens(user: IUser): { accessToken: string; refreshToken: string } {
