@@ -1,5 +1,5 @@
+import type { ResponseError } from './types';
 import { renewTokensAPI } from '@/modules/auth';
-import type { ResponseError } from '../types/responseError';
 
 export const authFetch = async (accessToken: string, url: string, options?: RequestInit): Promise<Response> => {
   const response = await fetch(url, {
