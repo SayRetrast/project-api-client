@@ -1,16 +1,23 @@
 import { createWebHistory, createRouter } from 'vue-router';
 import { authRoutes, renewTokensAPI, useTokenStore, useUserStore } from '@/modules/auth';
 import PageNotFoundView from './views/PageNotFoundView.vue';
-import TemporaryMainPageView from './views/TemporaryMainPageView.vue';
 import { jwtDecode } from 'jwt-decode';
-import type { UserJwtPayload } from './interfaces/userJwtPayload';
+import TemporaryMainPageView from './views/TemporaryMainPageView.vue';
+import CoreLayout from './layouts/CoreLayout.vue';
+import type { UserJwtPayload } from './lib/interfaces';
 
 export const router = createRouter({
   history: createWebHistory(),
   routes: [
     ...authRoutes,
-    { path: '/', name: 'main', component: TemporaryMainPageView },
-    { path: '/:pathMatch(.*)*', name: 'not-found', component: PageNotFoundView },
+    {
+      path: '/',
+      component: CoreLayout,
+      children: [
+        { path: '', name: 'main', component: TemporaryMainPageView },
+        { path: ':pathMatch(.*)*', name: 'not-found', component: PageNotFoundView },
+      ],
+    },
   ],
 });
 
