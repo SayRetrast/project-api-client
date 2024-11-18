@@ -1,19 +1,25 @@
 import { FastifyInstance, FastifyPluginOptions, FastifyReply, FastifyRequest } from 'fastify';
-import { SignUpBody, SignUpQuery, SignUpResponse, signUpSchema } from '../models/signUp.model';
 import { authRestController } from '../controllers/rest.controller';
 import { ZodTypeProvider } from 'fastify-type-provider-zod';
-import { SignInBody, SignInResponse, signInSchema } from '../models/signIn.model';
 import { authDecorator } from './auth.decorator';
 import { authMiddleware } from '../hooks/authMiddleware.hook';
-import { signOutSchema } from '../models/signOut.model';
-import { RenewTokensResponse } from '../models/renewTokens.model';
-import { CreateRegistrationLinkResponse, createRegistrationLinkSchema } from '../models/createRegistrationLink.model';
+import { validateRegistrationKey } from '../hooks/validateRegistrationKey.hook';
 import {
+  CreateRegistrationLinkResponse,
+  createRegistrationLinkSchema,
+  RenewTokensResponse,
+  SignInBody,
+  SignInResponse,
+  signInSchema,
+  signOutSchema,
+  SignUpBody,
+  SignUpQuery,
+  SignUpResponse,
+  signUpSchema,
   ValidateRegistrationLinkQuery,
   ValidateRegistrationLinkResponse,
   validateRegistrationLinkSchema,
-} from '../models/validateRegistrationLink.models';
-import { validateRegistrationKey } from '../hooks/validateRegistrationKey.hook';
+} from '@shared/models/auth';
 
 export function routes(fastify: FastifyInstance, options: FastifyPluginOptions, done: (err?: Error) => void): void {
   fastify.register(authDecorator);

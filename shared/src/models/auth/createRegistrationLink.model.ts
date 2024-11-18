@@ -1,11 +1,11 @@
-import z from 'zod';
+import { z } from "zod";
 
 const responseSchema = {
   201: z.object({
     statusCode: z.literal(201),
     registrationLink: z.string(),
   }),
-  '5xx': z.object({
+  "5xx": z.object({
     statusCode: z.number(),
     error: z.string(),
     message: z.string(),

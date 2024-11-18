@@ -1,23 +1,23 @@
-import z from 'zod';
+import { z } from "zod";
 
 const responseSchema = {
   200: z.object({
     statusCode: z.literal(200),
     accessToken: z.string(),
   }),
-  '4xx': z.object({
+  "4xx": z.object({
     statusCode: z.number(),
     error: z.string(),
     message: z.string(),
   }),
-  '5xx': z.object({
+  "5xx": z.object({
     statusCode: z.number(),
     error: z.string(),
     message: z.string(),
   }),
 };
 
-export const signOutSchema = {
+export const renewTokensSchema = {
   response: responseSchema,
 };
 
