@@ -5,21 +5,21 @@ import { authDecorator } from './auth.decorator';
 import { authMiddleware } from '../hooks/authMiddleware.hook';
 import { validateRegistrationKey } from '../hooks/validateRegistrationKey.hook';
 import {
+  CreateRegistrationLinkResponse,
+  createRegistrationLinkSchema,
+  RenewTokensResponse,
   SignInBody,
   SignInResponse,
   signInSchema,
-  SignUpQuery,
+  signOutSchema,
   SignUpBody,
+  SignUpQuery,
   SignUpResponse,
   signUpSchema,
-  signOutSchema,
-  RenewTokensResponse,
   ValidateRegistrationLinkQuery,
   ValidateRegistrationLinkResponse,
   validateRegistrationLinkSchema,
-  CreateRegistrationLinkResponse,
-  createRegistrationLinkSchema,
-} from 'shared/dist/src/models/auth';
+} from '@shared/src/models/auth';
 
 export function routes(fastify: FastifyInstance, options: FastifyPluginOptions, done: (err?: Error) => void): void {
   fastify.register(authDecorator);
