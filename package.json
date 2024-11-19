@@ -2,11 +2,10 @@
   "name": "project-api-client",
   "version": "1.0.0",
   "main": "index.js",
-  "private": true,
   "workspaces": [
+    "shared",
     "backend",
-    "frontend",
-    "shared"
+    "frontend"
   ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -16,6 +15,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "shared": "^1.0.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {

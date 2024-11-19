@@ -2,12 +2,10 @@
   "name": "backend",
   "version": "1.0.0",
   "main": "src/index.ts",
-  "private": true,
-  "type": "module",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
-    "build": "tsc -p tsconfig.json",
-    "start": "node dist/index.js",
+    "dev": "tsc --build ../shared/tsconfig.json && tsx watch src/index.ts tsc",
+    "build": "tsc --build tsconfig.json",
+    "start": "node dist/src/index.js",
     "lint": "eslint src/**/*.ts",
     "format": "eslint src/**/*.ts --fix"
   },

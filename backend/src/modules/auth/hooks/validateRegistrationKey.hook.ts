@@ -1,7 +1,7 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { InternalServerError, NotFoundError, UnauthorizedError } from '../../../core/errors/httpErrors';
 import { authRepository } from '../providers/auth.repository';
-import { ValidateRegistrationLinkQuery } from '../models/validateRegistrationLink.models';
+import { ValidateRegistrationLinkQuery } from '../../../../../shared/src/models/auth';
 
 export async function validateRegistrationKey(
   request: FastifyRequest<{ Querystring: ValidateRegistrationLinkQuery }>,

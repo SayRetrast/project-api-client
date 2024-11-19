@@ -9,14 +9,17 @@ import {
   UnauthorizedError,
 } from '../../../core/errors/httpErrors';
 import { ErrorWithStatusCode } from '../../../core/errors/errorWithStatusCode';
-import { SignInBody, SignInResponse } from '../models/signIn.model';
-import { SignUpBody, SignUpQuery, SignUpResponse } from '../models/signUp.model';
-import { RenewTokensResponse } from '../models/renewTokens.model';
-import { CreateRegistrationLinkResponse } from '../models/createRegistrationLink.model';
 import {
+  SignInBody,
+  SignInResponse,
+  SignUpQuery,
+  SignUpBody,
+  SignUpResponse,
+  RenewTokensResponse,
+  CreateRegistrationLinkResponse,
   ValidateRegistrationLinkQuery,
   ValidateRegistrationLinkResponse,
-} from '../models/validateRegistrationLink.models';
+} from '../../../../../shared/src/models/auth';
 
 interface IAuthRestController {
   signIn(request: FastifyRequest<{ Body: SignInBody }>, reply: FastifyReply<{ Reply: SignInResponse }>): Promise<void>;
